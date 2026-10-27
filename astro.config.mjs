@@ -106,6 +106,7 @@ export default defineConfig({
             { label: 'OpenAPI spec (YAML)', link: 'https://docs.oureawx.com/openapi/v1/openapi.yaml' },
             { label: "Cap'n Proto schema", link: 'https://docs.oureawx.com/schema/v1/ourea.capnp' },
             { label: 'Changelog and versioning', link: '/changelog/' },
+            { label: 'API status', link: '/status/' },
           ],
         },
       ],

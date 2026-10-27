@@ -86,6 +86,20 @@ which returns a page's own Markdown. Try it locally:
 npm run build && npx wrangler dev     # then POST JSON-RPC to http://localhost:8787/mcp
 ```
 
+## Status
+
+`workers/status/` (its own `wrangler.jsonc`) is a cron Worker: every 5
+minutes it probes four anonymous API routes and keeps 24 hours of results,
+plus the latest blend run from the forecast's `model_run`, in one KV key.
+The docs Worker forwards `/status/data.json` and `/status/badge.svg` to it
+through a service binding; `/status/` reads the JSON. Locally:
+
+```sh
+npx wrangler dev -c workers/status/wrangler.jsonc --test-scheduled --port 8800
+curl "http://localhost:8800/__scheduled?cron=*/5+*+*+*+*"     # one probe
+npx wrangler dev -c wrangler.jsonc -c workers/status/wrangler.jsonc --persist-to workers/status/.wrangler/state
+```
+
 ## Checks
 
 - `scripts/check-examples.mjs`: every referenced example exists, then runs
@@ -106,7 +120,7 @@ npm run build && npx wrangler dev     # then POST JSON-RPC to http://localhost:8
 
 ## Deploy
 
-`wrangler.jsonc` describes the Worker (static assets plus `/mcp`); the `docs.oureawx.com` custom domain
+`wrangler.jsonc` describes the docs Worker (static assets plus `/mcp` and the status routes) and `workers/status/wrangler.jsonc` the status Worker, which deploys first; the `docs.oureawx.com` custom domain
 comes from Terraform in the Ourea repository. Deploys are manual.
 
 ## Contributing

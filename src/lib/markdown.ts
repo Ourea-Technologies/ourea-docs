@@ -56,6 +56,7 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
       toMarkdown({ head: ['Date', 'Change', 'Kind', 'Breaking?', 'Operations'], rows: CHANGELOG.map((e) => [e.date, e.title, e.kind, e.breaking, e.operations.map((o) => `\`${o}\``).join(', ') || 'All']) }),
       ...CHANGELOG.map((e) => `### ${e.date}: ${e.title}\n\n${e.body}`),
     ].join('\n\n')],
+  [/<StatusBoard\s*\/>/g, () => `Live status (JSON): ${SITE}/status/data.json`],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

@@ -1,0 +1,30 @@
+---
+title: "API status"
+seoTitle: "Ourea API status and the latest blend run"
+description: "Whether the Ourea weather API is answering right now, how its anonymous routes did over the last 24 hours, and which model run the latest blend is from."
+---
+
+import StatusBoard from '../../components/StatusBoard.astro';
+
+A probe calls a few anonymous routes of `https://api.oureawx.com` every 5
+minutes and records each answer and how long it took. The latest blend run
+is the `model_run` the forecast route returned.
+
+<StatusBoard />
+
+The same latest-run line is a badge for your README:
+`https://docs.oureawx.com/status/badge.svg`.
+
+## What is probed
+
+| Check | Request |
+|---|---|
+| Forecast for a named location | `GET /api/v1/locations/or/mt-hood-meadows` |
+| Current conditions | `GET /api/v1/locations/or/mt-hood-meadows/current` |
+| Location search | `GET /api/v1/search/locations?q=hood` |
+| Available model runs | `GET /api/v1/runs` |
+
+These are anonymous requests, so they see what a caller without a key sees,
+including the edge cache. If your requests fail while these pass, check your
+key and your [rate-limit headers](/features/rate-limits/), and the
+[error codes](/features/errors/).

@@ -1,0 +1,64 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The status page's board: reads /status/data.json (the status Worker's
+// probe results, workers/status/) and shows each check's last answer, how
+// many of the last 24 hours' probes succeeded, and the latest blend run the
+// API reported. It displays the Worker's numbers; it computes none.
+---
+
+<div class="ourea-status" data-src="/status/data.json">
+  <p class="ourea-status__blend" data-blend>Loading the latest probe…</p>
+  <table class="ourea-tight">
+    <thead>
+      <tr><th>Check</th><th>Last answer</th><th>Latency</th><th>Last 24 h</th></tr>
+    </thead>
+    <tbody data-rows></tbody>
+  </table>
+  <p class="ourea-status__note" data-checked></p>
+</div>
+
+<script>
+  const names: Record<string, string> = { aifs: 'ECMWF AIFS-ENS', ifs_ens: 'ECMWF IFS-ENS', aigefs: 'NOAA AIGEFS', gefs: 'NOAA GEFS', rrfs: 'NOAA RRFS' };
+  for (const root of document.querySelectorAll<HTMLElement>('.ourea-status')) {
+    const blend = root.querySelector('[data-blend]')!;
+    const rows = root.querySelector('[data-rows]')!;
+    const checked = root.querySelector('[data-checked]')!;
+    const cell = (text: string) => Object.assign(document.createElement('td'), { textContent: text });
+    fetch(root.dataset.src!)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((s) => {
+        if (!s.checked_at) throw new Error('no probe yet');
+        const b = s.blend;
+        blend.textContent = b
+          ? `Latest blend: ${b.initialized_at.replace('T', ' ').replace(':00:00Z', 'Z')}, from ${b.models.map((m: { id: string; members: number | null }) => `${names[m.id] ?? m.id}${m.members ? ` (${m.members})` : ''}`).join(', ')}.`
+          : 'Latest blend: not reported by the last probe.';
+        for (const c of s.checks) {
+          const tr = document.createElement('tr');
+          const last = c.last;
+          tr.append(
+            cell(c.name),
+            cell(last ? (last.ok ? `OK (${last.status})` : `Failing (${last.status ?? last.error})`) : 'No data'),
+            cell(last ? `${last.ms} ms` : ''),
+            cell(`${c.ok_runs} of ${c.runs} probes OK`),
+          );
+          rows.append(tr);
+        }
+        checked.textContent = `Probed every 5 minutes from Cloudflare's network; last probe ${new Date(s.checked_at).toLocaleString()}.`;
+      })
+      .catch(() => {
+        blend.textContent = 'Status data is not available right now.';
+      });
+  }
+</script>
+
+<style>
+  .ourea-status__blend {
+    font-weight: 600;
+  }
+  .ourea-status__note {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>

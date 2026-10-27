@@ -11,16 +11,21 @@
   // workers_dev stays off so no *.workers.dev copy of the site exists.
   //
   // Deploy (not from CI): npm ci && npm run build && npx wrangler deploy
-  // Local: npm run build && npx wrangler dev (http://localhost:8787/mcp)
+  // Local: npm run build && npx wrangler dev (http://localhost:8787/mcp), or
+  // with the status Worker too:
+  //   npx wrangler dev -c wrangler.jsonc -c workers/status/wrangler.jsonc
   "name": "ourea-docs",
   "main": "workers/docs/index.mjs",
   "compatibility_date": "2026-06-29",
   "workers_dev": false,
+  // The status Worker (workers/status/), which serves /status/data.json and
+  // /status/badge.svg from its KV. Deploy it before this one.
+  "services": [{ "binding": "STATUS_WORKER", "service": "ourea-docs-status" }],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    // Only /mcp runs the script first; everything else is served as a file.
-    "run_worker_first": ["/mcp", "/mcp/"],
+    // Only these run the script first; everything else is served as a file.
+    "run_worker_first": ["/mcp", "/mcp/", "/status/data.json", "/status/badge.svg"],
     // Static site: a missing path is a real 404 (dist/404.html), never
     // index.html, so a missing hashed asset can't be cached as HTML.
     "not_found_handling": "404-page",

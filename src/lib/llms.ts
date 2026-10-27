@@ -18,7 +18,7 @@ const SECTIONS: [string, (id: string) => boolean][] = [
   ['Features', (id) => id.startsWith('features/')],
   ['Concepts', (id) => id.startsWith('concepts/')],
   ['Formats', (id) => ['json-or-capnp', 'capnp'].includes(id)],
-  ['Reference', (id) => id === 'changelog'],
+  ['Reference', (id) => id === 'changelog' || id === 'status'],
 ];
 
 const sorted = async () => {

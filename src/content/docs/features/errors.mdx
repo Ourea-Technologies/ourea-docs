@@ -54,6 +54,9 @@ routes are GET, so retrying is safe. The SDKs do it for you (up to 2 retries):
 - otherwise use full jitter: a random delay up to `min(8 s, 0.5 s × 2^(n-1))`
   before retry `n`.
 
+If `502`, `503` or `504` keep coming back, the [API status](/status/) page
+shows whether anonymous requests are failing too.
+
 ## Reference
 
 `ErrorResponse` and each operation's responses in the [API reference](/api/).
