@@ -45,6 +45,13 @@ pointing at that Markdown. The API reference has one Markdown page per
 operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
 `llms.txt` and appended to `llms-full.txt`.
 
+## Changelog
+
+Changelog entries live in `src/data/changelog.mjs` (date, kind, a
+"Breaking?" note, the operations touched, and the text). The changelog
+page's table and entries and the Atom feed at `/changelog/feed.xml` are
+built from that list; `tests/changelog.test.mjs` checks both.
+
 ## API clients
 
 `/downloads/ourea-weather-api.bruno.zip` is a Bruno collection built from

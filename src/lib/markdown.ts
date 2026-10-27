@@ -5,6 +5,7 @@
 // source with each component replaced by the Markdown of what it renders.
 // Only the components the pages use are handled; an unknown component fails
 // the build rather than leaking into the output.
+import { CHANGELOG } from '../data/changelog.mjs';
 import { FAQ } from '../data/faq';
 import { CAPNP_DECODERS, HTTP_EXAMPLES, comingSdks, raw, sdkTabFor, tabsFor, type Task } from './examples';
 import { SDKS } from './languages.mjs';
@@ -49,6 +50,12 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
   [/<RequestBuilder\s*\/>/g, () => '_The interactive builder is on the web page: https://docs.oureawx.com/request-builder/. The rules it follows are below._'],
   [/<Chart ([^>]*?)\/>/g, (a) => `_A chart on the web page${a.caption ? `: ${a.caption}` : ''}_`],
   [/<ApiClients\s*\/>/g, () => `- [Download the Bruno collection](${SITE}/downloads/ourea-weather-api.bruno.zip): one request per operation, with the tested examples' canonical URLs. Open the unzipped folder in Bruno.\n- [openapi.yaml](${SITE}/openapi/v1/openapi.yaml) imports into any client that reads OpenAPI 3.1.`],
+  [/<ChangelogEntries\s*\/>/g, () =>
+    [
+      `Atom feed: ${SITE}/changelog/feed.xml`,
+      toMarkdown({ head: ['Date', 'Change', 'Kind', 'Breaking?', 'Operations'], rows: CHANGELOG.map((e) => [e.date, e.title, e.kind, e.breaking, e.operations.map((o) => `\`${o}\``).join(', ') || 'All']) }),
+      ...CHANGELOG.map((e) => `### ${e.date}: ${e.title}\n\n${e.body}`),
+    ].join('\n\n')],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

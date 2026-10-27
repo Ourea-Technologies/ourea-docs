@@ -1,0 +1,37 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The changelog's summary table and entries (src/data/changelog.mjs), the
+// same list the Atom feed is built from.
+import { CHANGELOG } from '../data/changelog.mjs';
+import { marked } from '../lib/inline-md';
+---
+
+<p>Follow changes in a feed reader: <a href="/changelog/feed.xml">Atom feed</a>.</p>
+<table class="ourea-tight">
+  <thead>
+    <tr><th>Date</th><th>Change</th><th>Kind</th><th>Breaking?</th><th>Operations</th></tr>
+  </thead>
+  <tbody>
+    {
+      CHANGELOG.map((e) => (
+        <tr>
+          <td>{e.date}</td>
+          <td><a href={`#${e.slug}`}>{e.title}</a></td>
+          <td>{e.kind}</td>
+          <td set:html={marked(e.breaking)} />
+          <td>{e.operations.length ? e.operations.map((o, i) => <>{i > 0 && ', '}<a href={`/api/${o}.md`}><code>{o}</code></a></>) : 'All'}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+{
+  CHANGELOG.map((e) => (
+    <>
+      <h3 id={e.slug}>{e.date}: {e.title}</h3>
+      <p set:html={marked(e.body)} />
+    </>
+  ))
+}

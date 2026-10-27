@@ -4,6 +4,8 @@ seoTitle: "Changelog, versioning and deprecation policy"
 description: "How the Ourea weather API versions its contract, how deprecations are announced and signalled, and the changes to API v1."
 ---
 
+import ChangelogEntries from '../../components/ChangelogEntries.astro';
+
 ## Versioning
 
 - **v1 changes only additively.** New fields, parameters, routes, error codes
@@ -32,14 +34,4 @@ language's warning channel (Python `warnings`, a logger elsewhere), with the
 
 ## Changes
 
-### Contract 1.0.0
-
-The v1 contract lock: the public spec in
-[ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec)
-at `openapi/v1/openapi.yaml`.
-
-### 2026-10-19: the hourly series starts now
-
-The hourly `timeseries` starts at the current hour instead of the model run's
-init, and `max_hours` counts from it. `include_past=true` restores the old
-window. Locations carry their IANA `timezone`.
+<ChangelogEntries />

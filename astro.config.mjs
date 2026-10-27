@@ -46,6 +46,7 @@ export default defineConfig({
       head: [
         { tag: 'script', content: langSwitcherScript },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'link', attrs: { rel: 'alternate', type: 'application/atom+xml', title: 'Ourea API changelog', href: '/changelog/feed.xml' } },
       ],
       plugins: [starlightLinksValidator({ errorOnLocalLinks: true, errorOnFallbackPages: false, exclude: ['/api/', '/api/**', '/schema/**', '/openapi/**', '/llms.txt', '/llms-full.txt', '/**/*.md', '/*.md'] })],
       sidebar: [
