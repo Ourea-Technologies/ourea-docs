@@ -6,6 +6,7 @@ sidebar:
   order: 2
 ---
 
+import Chart from '../../../components/Chart.astro';
 import Example from '../../../components/Example.astro';
 
 A storm total's range is **not** the sum of the hourly ranges. Percentiles do
@@ -50,6 +51,13 @@ The mean is the exception: it does add. The hourly means are 0.6, 0.6 and
 0.6, and the total's mean is 1.8 in. That is why the headline running totals
 (`snow_outlook.next_24h`, `cumulative_snowfall`) are sums of hourly means,
 while their **ranges** are computed from each member's own total.
+
+These are the hourly snowfall quantiles a real forecast serves. Adding up
+the p90 line over the storm does not give the storm's p90 total: each hour's
+p90 comes from different members, and only the server has the members to
+add up each one's own total.
+
+<Chart kind="fan" variable="snowfall" caption="Hourly snowfall quantiles at Mt. Hood Meadows, as served." />
 
 ## The right way: ask the server
 

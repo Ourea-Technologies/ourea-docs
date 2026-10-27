@@ -6,6 +6,8 @@ sidebar:
   order: 1
 ---
 
+import Chart from '../../../components/Chart.astro';
+
 An ensemble forecast runs the weather models many times with slightly
 different starting conditions and model physics. Each run is a **member**.
 Ourea pools the members of up to five ensembles (`model_run.total_members`
@@ -34,6 +36,12 @@ from members).
 - **Words:** use the National Weather Service's wording for ranges:
   "Most likely 8 in, at least 4 in, could reach 14 in" (p50, p10, p90). Never
   a bare "4-14 in".
+
+This is what a served forecast's quantiles look like over three days: the
+p10 to p90 band holds eight members in ten, the p25 to p75 band half of them,
+and the line is the median.
+
+<Chart kind="fan" variable="temperature" caption="Hourly temperature quantiles at Mt. Hood Meadows, exactly as served: straight lines join the served hours, and nothing is smoothed between quantiles." />
 
 ## Things that look like bugs but aren't
 

@@ -6,6 +6,7 @@ sidebar:
   order: 1
 ---
 
+import Chart from '../../../components/Chart.astro';
 import { Aside } from '@astrojs/starlight/components';
 import Example from '../../../components/Example.astro';
 
@@ -29,6 +30,14 @@ and a separate edge-cache entry, so store and send the canonical pair. The
 SDKs accept `"or/mt-hood-meadows"` as one string and send the two segments
 percent-encoded. A state with no onboarded locations, or an unknown state,
 answers `404`.
+
+## Where forecasts are served
+
+Forecasts cover the contiguous United States: a point must lie inside the
+coverage window and over a US state. Offshore points, and points outside the
+window, get `404 OUTSIDE_COVERAGE`.
+
+<Chart kind="coverage" />
 
 ## Coordinates (Pro)
 

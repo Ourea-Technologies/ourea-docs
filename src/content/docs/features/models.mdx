@@ -6,6 +6,7 @@ sidebar:
   order: 7
 ---
 
+import Chart from '../../../components/Chart.astro';
 import Example from '../../../components/Example.astro';
 
 ## The blend
@@ -25,6 +26,11 @@ models are generally at different inits.
 - `models[]`: one `{id, cycle, members}` per contributing model, in the order
   `aifs`, `aigefs`, `gefs`, `ifs_ens`, `rrfs`; a model added later follows. A
   model that contributed nothing is absent. Treat unknown ids as additive.
+
+Which models feed which hours, from the same response: the global ensembles
+publish every 6 hours, RRFS every hour out to 84 h.
+
+<Chart kind="blend" caption="The lead hours where each model's members are served in one members=true response (the Free 240 h horizon), with each model's member count and cycle from model_run." />
 
 ## Per-model breakdowns (Pro)
 

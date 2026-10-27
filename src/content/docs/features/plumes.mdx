@@ -6,6 +6,7 @@ sidebar:
   order: 6
 ---
 
+import Chart from '../../../components/Chart.astro';
 import { Aside } from '@astrojs/starlight/components';
 import Example from '../../../components/Example.astro';
 
@@ -30,6 +31,8 @@ request carries every model's members for every hour:
   `elevation_forecasts[]` entry at its own elevation.
 - A `null` member value means that member published nothing at that hour;
   a measured `0.0` is a dry member. They are different claims.
+
+<Chart kind="plume" caption="A plume from members=true: each line is one member's served cumulative_snowfall, coloured by model. The 6-hourly models' members have values every sixth hour; RRFS has one member, hourly to 84 h. Straight lines join the served hours." />
 
 ## Plume view and full view
 

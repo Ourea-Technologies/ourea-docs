@@ -1,0 +1,64 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// A build-time SVG chart (src/lib/charts.mjs) with its source in the
+// caption: the recorded request, when it was recorded and from which API
+// version, or the public spec and the Census basemap for the coverage map.
+// No client script.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { SPEC_PATH } from '../lib/code-samples.mjs';
+import { blendDiagram, coverageMap, fanChart, fanRows, plumeChart } from '../lib/charts.mjs';
+import { loadRecording } from '../lib/recorded.mjs';
+
+interface Props {
+  kind: 'fan' | 'plume' | 'blend' | 'coverage';
+  variable?: 'temperature' | 'snowfall';
+  caption?: string;
+}
+const { kind, variable = 'temperature', caption } = Astro.props;
+const root = process.cwd();
+let svg = '';
+let source = '';
+let rows: ReturnType<typeof fanRows> = [];
+let rec: any;
+if (kind === 'coverage') {
+  const geo = JSON.parse(readFileSync(join(root, 'src/data/geo/conus-states.json'), 'utf8'));
+  const spec = readFileSync(join(root, SPEC_PATH), 'utf8');
+  const m = /outside the forecast coverage window \(lat (-?[\d.]+)\.\.(-?[\d.]+), lon (-?[\d.]+)\.\.(-?[\d.]+)\)/.exec(spec);
+  if (!m) throw new Error('coverage map: the OpenAPI spec no longer states the coverage window');
+  svg = coverageMap(geo, { lat: [Number(m[1]), Number(m[2])], lon: [Number(m[3]), Number(m[4])] });
+  source = `Coverage window from the API spec (the OUTSIDE_COVERAGE error). State outlines: ${geo.source}`;
+} else {
+  rec = loadRecording(root, kind === 'fan' ? 'fan' : 'plume');
+  svg = kind === 'fan' ? fanChart(rec, variable) : kind === 'plume' ? plumeChart(rec) : blendDiagram(rec);
+  if (kind === 'fan') rows = fanRows(rec, variable);
+  source = `Recorded from the live API on ${rec.recorded_at.slice(0, 10)} (API ${rec.api_version}, ${rec.shape} response): ${rec.request}`;
+}
+---
+
+<figure class="ourea-figure">
+  <div set:html={svg} />
+  <figcaption>
+    {caption && <span>{caption} </span>}
+    <span class="ourea-figure__source">{source}</span>
+  </figcaption>
+  {
+    rows.length > 0 && (
+      <details>
+        <summary>The served values as a table</summary>
+        <table class="ourea-tight">
+          <thead>
+            <tr><th>valid_time (UTC)</th><th>p10</th><th>p25</th><th>p50</th><th>p75</th><th>p90</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr><td>{r.valid_time}</td><td>{r.p10}</td><td>{r.p25}</td><td>{r.p50}</td><td>{r.p75}</td><td>{r.p90}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    )
+  }
+</figure>

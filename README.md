@@ -18,6 +18,8 @@ npm run gate         # build, SEO and link checks, every example
 | `public/schema/v1/ourea.capnp` | the Ourea server's schema, with maintainers' comments removed and every declaration checked identical (`public/schema/v1/SOURCE.json`) | `npm run sync:schema -- --source <file>` |
 | `examples/capnp/fixtures/` | the server's golden test message (`fixtures/source.json`) | by hand |
 | `src/data/limits.json` | the limits the docs publish, checked against the OpenAPI spec | by hand |
+| `src/data/recorded/` | responses recorded from the live API for the charts: the request, date, API version and shape in each file, only the fields the charts draw | `node scripts/record-fixtures.mjs` (by hand) |
+| `src/data/geo/conus-states.json` | US Census Bureau cartographic boundaries (states, 1:20,000,000, public domain), simplified | `node scripts/build-basemap.mjs <shapefile>` |
 | `examples/sdk/<lang>/` | each SDK repo's `examples/`, at the ref in `examples/sdk-refs.json` | `npm run sync:examples` |
 | `examples/curl/`, `examples/capnp/`, `examples/http/` | this repo | edit, then `npm run gate` |
 
@@ -42,6 +44,20 @@ alternate (`/<page>.md`), or open it in Claude or ChatGPT with a prompt
 pointing at that Markdown. The API reference has one Markdown page per
 operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
 `llms.txt` and appended to `llms-full.txt`.
+
+## Charts
+
+`<Chart kind="fan|plume|blend|coverage">` draws an SVG at build time
+(`src/lib/charts.mjs`, no client script) from a recorded response or, for
+the coverage map, the spec's coverage window over the Census outline. Only
+served values are vertices; straight lines join served hours, and nothing is
+smoothed, summed or interpolated (`tests/charts.test.mjs` counts them).
+
+The current recordings come from the pre-v1 API (0.1603.0, 2026-10-27);
+`src/lib/recorded.mjs` reads both shapes. Once v1 is deployed, re-record
+(`node scripts/record-fixtures.mjs`) and check the charts on
+`/concepts/quantiles/`, `/concepts/adding-quantiles/`, `/features/plumes/`
+and `/features/models/`.
 
 ## The docs MCP server
 

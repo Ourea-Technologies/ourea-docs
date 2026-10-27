@@ -56,3 +56,86 @@ table.ourea-tight th {
   color: var(--sl-color-gray-3);
   margin-top: 0.25rem;
 }
+/* Build-time charts (src/lib/charts.mjs). Series colours: the dataviz
+   reference palette's first five categorical slots, stepped per theme. */
+:root {
+  --ourea-series-1: #3987e5;
+  --ourea-series-2: #d95926;
+  --ourea-series-3: #199e70;
+  --ourea-series-4: #c98500;
+  --ourea-series-5: #d55181;
+}
+:root[data-theme='light'] {
+  --ourea-series-1: #2a78d6;
+  --ourea-series-2: #eb6834;
+  --ourea-series-3: #1baf7a;
+  --ourea-series-4: #eda100;
+  --ourea-series-5: #e87ba4;
+}
+.ourea-figure {
+  margin: 1.5rem 0;
+}
+.ourea-chart {
+  width: 100%;
+  height: auto;
+  font-family: var(--sl-font-system);
+  font-size: 11px;
+}
+.ourea-chart text {
+  fill: var(--sl-color-gray-2);
+}
+.ourea-chart .tick {
+  fill: var(--sl-color-gray-3);
+}
+.ourea-chart .axis-label,
+.ourea-chart .row-label {
+  fill: var(--sl-color-white);
+  font-weight: 600;
+}
+.ourea-chart .grid {
+  stroke: var(--sl-color-gray-5);
+  stroke-width: 1;
+}
+.ourea-chart .band-outer {
+  fill: var(--sl-color-accent);
+  opacity: 0.25;
+}
+.ourea-chart .band-inner {
+  fill: var(--sl-color-accent);
+  opacity: 0.5;
+}
+.ourea-chart .median {
+  fill: none;
+  stroke: var(--sl-color-white);
+  stroke-width: 2;
+}
+.ourea-chart .member {
+  fill: none;
+  stroke-width: 1;
+  stroke-opacity: 0.45;
+}
+.ourea-chart .series-1 { stroke: var(--ourea-series-1); fill: var(--ourea-series-1); }
+.ourea-chart .series-2 { stroke: var(--ourea-series-2); fill: var(--ourea-series-2); }
+.ourea-chart .series-3 { stroke: var(--ourea-series-3); fill: var(--ourea-series-3); }
+.ourea-chart .series-4 { stroke: var(--ourea-series-4); fill: var(--ourea-series-4); }
+.ourea-chart .series-5 { stroke: var(--ourea-series-5); fill: var(--ourea-series-5); }
+.ourea-chart path.member { fill: none; }
+.ourea-chart .land {
+  fill: var(--sl-color-gray-5);
+  stroke: var(--sl-color-bg);
+  stroke-width: 0.75;
+}
+.ourea-chart .coverage {
+  fill: var(--sl-color-accent);
+  fill-opacity: 0.12;
+  stroke: var(--sl-color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+.ourea-figure figcaption {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.ourea-figure__source {
+  overflow-wrap: anywhere;
+}
