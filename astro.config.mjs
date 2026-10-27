@@ -42,7 +42,7 @@ export default defineConfig({
       customCss: ['./src/styles/custom.css'],
       routeMiddleware: './src/route-data.ts',
       editLink: { baseUrl: 'https://github.com/Ourea-Technologies/ourea-docs/edit/main/' },
-      components: { Footer: './src/components/Footer.astro' },
+      components: { Footer: './src/components/Footer.astro', PageTitle: './src/components/PageTitle.astro' },
       head: [
         { tag: 'script', content: langSwitcherScript },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },

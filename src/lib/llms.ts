@@ -6,6 +6,7 @@
 import { getCollection } from 'astro:content';
 import { SDKS } from './languages.mjs';
 import { SITE, mdPath, toCleanMarkdown } from './markdown';
+import { operationPages } from './operation-md.mjs';
 
 // The language pages, by id (weather-api/python, weather-api/nodejs, ...).
 const LANGUAGE_PAGES = new Set([...SDKS.map((s) => s.page.replace(/^\/|\/$/g, '')), 'weather-api/nodejs']);
@@ -43,6 +44,9 @@ export const llmsTxt = async (): Promise<string> => {
     for (const d of items) out.push(`- [${d.data.title}](${SITE}${mdPath(d.id)}): ${d.data.description ?? ''}`);
     out.push('');
   }
+  out.push('## API reference', '', `One page per operation, with its parameters, responses and tested examples (the interactive reference is ${SITE}/api/):`, '');
+  for (const op of operationPages(process.cwd())) out.push(`- [${op.title}](${SITE}/api/${op.id}.md): \`${op.id}\``);
+  out.push('');
   out.push(
     '## Optional',
     '',
@@ -56,5 +60,8 @@ export const llmsTxt = async (): Promise<string> => {
 
 export const llmsFullTxt = async (): Promise<string> => {
   const docs = await sorted();
-  return docs.map((d) => `${toCleanMarkdown(d.data.title, d.data.description, d.body ?? '')}\nSource: ${SITE}/${d.id ? `${d.id}/` : ''}\n`).join('\n---\n\n');
+  const pages = docs.map((d) => `${toCleanMarkdown(d.data.title, d.data.description, d.body ?? '')}\nSource: ${SITE}/${d.id ? `${d.id}/` : ''}\n`);
+  // The API reference, one section per operation, after the guides.
+  const reference = operationPages(process.cwd()).map((op) => op.markdown);
+  return [...pages, ...reference].join('\n---\n\n');
 };

@@ -9,7 +9,9 @@
 //   * a sample's text is not taken from a tested example file (a curl or
 //     Cap'n Proto script in reader form, or a synced SDK program);
 //   * two samples on one operation would get the same client id in Scalar
-//     (the language picker keys on it), or a sample's label is not a tab.
+//     (the language picker keys on it), or a sample's label is not a tab;
+//   * an operation has no Markdown page (/api/<operationId>.md), or is
+//     missing from llms-full.txt.
 //
 //   node scripts/check-reference.mjs [dist]
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -69,6 +71,13 @@ for (const o of ops) {
     const fromSdk = sdkTexts.has(s.source);
     if (!fromShell && !fromSdk) fail(`${o.id}: the ${s.label} sample is not text from a tested example file`);
   }
+}
+
+// 5. Markdown for agents: one page per operation, and all of them in llms-full.txt.
+const full = existsSync(join(dist, 'llms-full.txt')) ? readFileSync(join(dist, 'llms-full.txt'), 'utf8') : '';
+for (const o of ops) {
+  if (!existsSync(join(dist, 'api', `${o.id}.md`))) fail(`${o.id}: no dist/api/${o.id}.md`);
+  if (!full.includes(`operationId: \`${o.id}\``)) fail(`${o.id}: not in llms-full.txt`);
 }
 
 console.log(`reference: ${ops.length} operations, ${samples} code samples`);

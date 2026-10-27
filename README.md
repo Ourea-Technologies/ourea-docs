@@ -37,6 +37,12 @@ own request from the spec's test vectors at build time, and
 `src/lib/responses.mjs` trims and annotates the body without changing a
 value.
 
+Every page has actions under its title: copy or view its Markdown
+alternate (`/<page>.md`), or open it in Claude or ChatGPT with a prompt
+pointing at that Markdown. The API reference has one Markdown page per
+operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
+`llms.txt` and appended to `llms-full.txt`.
+
 ## Checks
 
 - `scripts/check-examples.mjs`: every referenced example exists, then runs
