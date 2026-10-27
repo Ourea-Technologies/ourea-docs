@@ -22,6 +22,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { SPEC_PATH, operationsOf } from '../src/lib/code-samples.mjs';
+import { SDKS } from '../src/lib/languages.mjs';
 import { forReader, shellCalls } from '../src/lib/reader.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -87,7 +88,7 @@ for (const m of libSrc.matchAll(/'(examples\/[^']+)'/g)) if (!exists(m[1])) fail
 const httpLangs = new Set([...libSrc.matchAll(/^ {2}(\w+): \{ path: 'examples\/http\//gm)].map((m) => m[1]));
 
 // 4. Page references.
-const sdkSlugs = new Set(['python', 'typescript', 'go', 'csharp', 'java', 'kotlin', 'swift']);
+const sdkSlugs = new Set(SDKS.map((s) => s.slug));
 const pages = readdirSync(join(root, 'src/content/docs'), { recursive: true }).filter((f) => /\.mdx?$/.test(f));
 let refsSeen = 0;
 for (const f of pages) {

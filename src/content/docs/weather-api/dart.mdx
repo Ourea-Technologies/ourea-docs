@@ -1,0 +1,70 @@
+---
+title: "Weather API for Dart and Flutter"
+seoTitle: "Weather API for Dart and Flutter · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Dart or Flutter: install ensemble_weather, make a first forecast call with no key, and ask for snow chances."
+schemaType: SoftwareSourceCode
+sdk: dart
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import ExampleResponse from '../../../components/ExampleResponse.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`ensemble_weather` is the official Dart SDK: one package for Flutter apps on Android, iOS, desktop and web, and for the Dart VM. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Install
+
+<LanguageNotes sdk="dart" />
+
+In a Flutter app, `flutter pub add ensemble_weather` does the same.
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to pub.dev, the curl
+tab of any example on this site shows the exact request it sends.
+</Aside>
+
+## Quickstart
+
+No key needed:
+
+<SdkExample sdk="dart" task="quickstart" />
+
+The SDK returns the response as typed objects. This is the response to the
+quickstart's request as the curl example sends it:
+
+<ExampleResponse task="quickstart" open={false} />
+
+## Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="dart" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+## Storm totals
+
+<SdkExample sdk="dart" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+Never embed an API key in an app binary: call anonymously or through your own backend. A `null` probability means the served series does not reach the window's end; it is never 0.
+
+- [Getting started](/getting-started/?lang=dart) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

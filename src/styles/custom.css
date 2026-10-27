@@ -51,3 +51,8 @@ table.ourea-tight th {
   font-size: var(--sl-text-sm);
   color: var(--sl-color-gray-3);
 }
+.ourea-example__coming {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+  margin-top: 0.25rem;
+}

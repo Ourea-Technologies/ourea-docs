@@ -1,0 +1,49 @@
+---
+title: "Weather API for Rust"
+seoTitle: "Weather API for Rust · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Rust: the ensemble-weather crate (coming), and the exact requests it sends, with no key needed."
+schemaType: SoftwareSourceCode
+sdk: rust
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import ExampleResponse from '../../../components/ExampleResponse.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`ensemble-weather` is the official Rust crate: an async client on Tokio, with a blocking client behind a feature. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+<Aside type="note" title="Coming">
+The Rust SDK is still being built: its examples appear here once its first
+commit is pinned. Until then, the curl tab of each example shows the exact
+request the crate sends, and any HTTP client works.
+</Aside>
+
+## Install
+
+<LanguageNotes sdk="rust" />
+
+## Quickstart
+
+<SdkExample sdk="rust" task="quickstart" />
+
+The request, with curl:
+
+<Example task="quickstart" op="getLocationForecast" />
+
+<ExampleResponse task="quickstart" open={false} />
+
+## Notes
+
+For a binary body, the [Cap'n Proto guide](/capnp/) has a tested Rust
+decoder for `format=capnp` responses.
+
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

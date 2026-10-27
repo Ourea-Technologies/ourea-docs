@@ -1,5 +1,5 @@
 {
-  "$comment": "The ref each SDK's examples are synced from (scripts/sync-examples.mjs). null = nothing committed to pin yet, so that SDK's tabs show a placeholder. Use a release tag once the SDK is released.",
+  "$comment": "The ref each SDK's examples are synced from (scripts/sync-examples.mjs). null = nothing committed to pin yet, so that SDK has no tab and is listed as coming. `examples` names the examples directory when it is not examples/ (Dart's is example/). Use a release tag once the SDK is released.",
   "sdks": {
     "python": {
       "name": "ensemble-weather-python",
@@ -27,21 +27,21 @@
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-dotnet",
       "local": "../ensemble-weather-dotnet",
       "ext": ".cs",
-      "ref": "1017e37e6417"
+      "ref": "dd0e9b97a688"
     },
     "java": {
       "name": "ensemble-weather-java",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-java",
       "local": "../ensemble-weather-java",
       "ext": ".java",
-      "ref": null
+      "ref": "c588d4987efe"
     },
     "kotlin": {
       "name": "ensemble-weather-kotlin",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-kotlin",
       "local": "../ensemble-weather-kotlin",
       "ext": ".kt",
-      "ref": null
+      "ref": "bc61bc640131"
     },
     "swift": {
       "name": "ensemble-weather-swift",
@@ -49,6 +49,28 @@
       "local": "../ensemble-weather-swift",
       "ext": ".swift",
       "ref": "eb86e27a39ee"
+    },
+    "dart": {
+      "name": "ensemble-weather-dart",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-dart",
+      "local": "../ensemble-weather-dart",
+      "ext": ".dart",
+      "examples": "example",
+      "ref": "8f5a704966c4"
+    },
+    "r": {
+      "name": "ensemble-weather-r",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-r",
+      "local": "../ensemble-weather-r",
+      "ext": ".R",
+      "ref": "70a6d2a53ce8"
+    },
+    "rust": {
+      "name": "ensemble-weather-rust",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-rust",
+      "local": "../ensemble-weather-rust",
+      "ext": ".rs",
+      "ref": null
     }
   }
 }

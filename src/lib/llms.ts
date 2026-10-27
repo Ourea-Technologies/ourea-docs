@@ -4,12 +4,16 @@
 // llms.txt (an index) and llms-full.txt (every page as Markdown), built from
 // the same entries and sidebar order as the site (llmstxt.org format).
 import { getCollection } from 'astro:content';
+import { SDKS } from './languages.mjs';
 import { SITE, mdPath, toCleanMarkdown } from './markdown';
+
+// The language pages, by id (weather-api/python, weather-api/nodejs, ...).
+const LANGUAGE_PAGES = new Set([...SDKS.map((s) => s.page.replace(/^\/|\/$/g, '')), 'weather-api/nodejs']);
 
 const SECTIONS: [string, (id: string) => boolean][] = [
   ['Start here', (id) => ['index', '', 'getting-started', 'faq'].includes(id)],
-  ['Weather API', (id) => id.startsWith('weather-api') && !/\/(python|javascript|nodejs|go|csharp|java|kotlin|swift)$/.test(id)],
-  ['By language', (id) => /^weather-api\/(python|javascript|nodejs|go|csharp|java|kotlin|swift)$/.test(id)],
+  ['Weather API', (id) => id.startsWith('weather-api') && !LANGUAGE_PAGES.has(id)],
+  ['By language', (id) => LANGUAGE_PAGES.has(id)],
   ['Features', (id) => id.startsWith('features/')],
   ['Concepts', (id) => id.startsWith('concepts/')],
   ['Formats', (id) => ['json-or-capnp', 'capnp'].includes(id)],
@@ -29,7 +33,7 @@ export const llmsTxt = async (): Promise<string> => {
     '',
     '> Ourea is a probabilistic weather API for the contiguous United States: forecasts blended from up to five ensembles (ECMWF AIFS-ENS and IFS-ENS, NOAA AIGEFS, GEFS and RRFS), served as quantiles, server-computed probabilities (`prob=`) and window totals (`totals=`). Named-location forecasts need no API key (Free tier, 240 h); coordinates, 360 h, per-model data and pinned runs need Pro.',
     '',
-    'Base URL: https://api.oureawx.com. Send canonical URLs (parameters in alphabetical order, none at its default, literal `:` and `,` in `prob` and `totals`). Never add quantiles across hours; ask the server for window totals. Official SDKs: ensemble-weather-{python,typescript,go,dotnet,java,kotlin,swift} at https://github.com/Ourea-Technologies.',
+    `Base URL: https://api.oureawx.com. Send canonical URLs (parameters in alphabetical order, none at its default, literal \`:\` and \`,\` in \`prob\` and \`totals\`). Never add quantiles across hours; ask the server for window totals. Official SDKs: ${SDKS.map((s) => `${s.repoName} (${s.label})`).join(', ')}, at https://github.com/Ourea-Technologies.`,
     '',
   ];
   for (const [name, test] of SECTIONS) {

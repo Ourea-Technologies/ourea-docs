@@ -11,7 +11,7 @@ import refs from '../../examples/sdk-refs.json';
 import { SDKS, TRANSPORTS } from './languages.mjs';
 import { forReader } from './reader.mjs';
 
-const files = import.meta.glob(['/examples/**/*.{sh,py,ts,js,mjs,go,cs,java,kt,kts,swift,rs,c++,toml,in,txt}', '!**/build/**', '!**/bin/**', '!**/obj/**', '!**/.gradle/**', '!**/.kotlin/**'], {
+const files = import.meta.glob(['/examples/**/*.{sh,py,ts,js,mjs,go,cs,java,kt,kts,swift,dart,R,rs,c++,toml,in,txt}', '!**/build/**', '!**/bin/**', '!**/obj/**', '!**/.gradle/**', '!**/.kotlin/**'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -49,7 +49,8 @@ const sdkTab = (task: Task, sdk: (typeof SDKS)[number]): TabCode => {
   if (!path) {
     return { ...base, placeholder: `Coming in ${sdk.repoName} 0.1. Until then, the curl tab shows the exact request; the SDK sends the same canonical URL.` };
   }
-  const inRepo = path.replace(/^examples\/sdk\/[^/]+\//, 'examples/');
+  const examplesDir = (refs.sdks as Record<string, { examples?: string }>)[sdk.refKey]?.examples ?? 'examples';
+  const inRepo = path.replace(/^examples\/sdk\/[^/]+\//, `${examplesDir}/`);
   return { ...base, path, code: raw(path), sourceUrl: `${sdk.repo}/blob/${entry.commit ?? entry.ref}/${inRepo}` };
 };
 
@@ -62,8 +63,19 @@ export const tabsFor = (task: Task): TabCode[] => {
     t.capnp
       ? { slug: capnp.slug, label: capnp.label, hl: capnp.hl, path: t.capnp, code: forReader(raw(t.capnp)) }
       : { slug: capnp.slug, label: capnp.label, hl: capnp.hl, placeholder: "This route serves JSON only; there is no Cap'n Proto body." },
-    ...SDKS.map((s) => sdkTab(task, s)),
+    ...SDKS.filter((s) => isPinned(s)).map((s) => sdkTab(task, s)),
   ];
+};
+
+/** An SDK with examples pinned (a ref in sdk-refs.json) gets a tab; the rest are listed as coming. */
+const isPinned = (s: (typeof SDKS)[number]) => Boolean((sdkIndex as Record<string, { ref: string | null }>)[s.refKey]?.ref);
+export const comingSdks = () => SDKS.filter((s) => !isPinned(s));
+
+/** One SDK's program (or placeholder) for a task, pinned or not: the language pages. */
+export const sdkTabFor = (task: Task, slug: string): TabCode => {
+  const sdk = SDKS.find((s) => s.slug === slug);
+  if (!sdk) throw new Error(`unknown sdk ${slug}`);
+  return sdkTab(task, sdk);
 };
 
 export const taskInfo = (task: Task) => manifest.tasks[task];

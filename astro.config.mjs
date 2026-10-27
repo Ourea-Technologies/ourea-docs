@@ -18,6 +18,10 @@ const languageRedirects = {
   '/java': '/weather-api/java/',
   '/kotlin': '/weather-api/kotlin/',
   '/swift': '/weather-api/swift/',
+  '/dart': '/weather-api/dart/',
+  '/flutter': '/weather-api/dart/',
+  '/r': '/weather-api/r/',
+  '/rust': '/weather-api/rust/',
 };
 
 export default defineConfig({
@@ -78,6 +82,9 @@ export default defineConfig({
             { label: 'Java', link: '/weather-api/java/' },
             { label: 'Kotlin', link: '/weather-api/kotlin/' },
             { label: 'Swift / iOS', link: '/weather-api/swift/' },
+            { label: 'Dart / Flutter', link: '/weather-api/dart/' },
+            { label: 'R', link: '/weather-api/r/' },
+            { label: 'Rust', link: '/weather-api/rust/' },
           ],
         },
         { label: 'Features', items: [{ autogenerate: { directory: 'features' } }] },

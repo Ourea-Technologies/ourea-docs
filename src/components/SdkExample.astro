@@ -3,13 +3,12 @@
 // One SDK's program for one task, synced from that SDK's examples/ at its
 // pinned ref, or the "coming in 0.1" placeholder.
 import { Code } from '@astrojs/starlight/components';
-import { tabsFor, type Task } from '../lib/examples';
+import { sdkTabFor, type Task } from '../lib/examples';
 interface Props {
   sdk: string;
   task: Task;
 }
-const tab = tabsFor(Astro.props.task).find((t) => t.slug === Astro.props.sdk);
-if (!tab) throw new Error(`unknown sdk ${Astro.props.sdk}`);
+const tab = sdkTabFor(Astro.props.task, Astro.props.sdk);
 ---
 
 {tab.code ? <Code code={tab.code} lang={tab.hl} title={tab.path?.split('/').pop()} /> : <p class="ourea-example__placeholder">{tab.placeholder}</p>}

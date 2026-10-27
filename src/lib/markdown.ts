@@ -6,7 +6,7 @@
 // Only the components the pages use are handled; an unknown component fails
 // the build rather than leaking into the output.
 import { FAQ } from '../data/faq';
-import { CAPNP_DECODERS, HTTP_EXAMPLES, raw, tabsFor, type Task } from './examples';
+import { CAPNP_DECODERS, HTTP_EXAMPLES, comingSdks, raw, sdkTabFor, tabsFor, type Task } from './examples';
 import { SDKS } from './languages.mjs';
 import { annotatedResponse } from './responses.mjs';
 import { RESPONSE_NOTE } from './responses-text';
@@ -23,12 +23,12 @@ const exampleMd = (task: Task) => {
   return [
     ...tabs.filter((t) => t.code).map((t) => `**${t.label}**\n\n${fence(t.code ?? '', t.hl)}${t.jq ? `\n\nReadable in a terminal, with jq:\n\n${fence(t.jq, 'bash')}` : ''}`),
     ...(pending.length ? [`SDK examples coming in each SDK's 0.1 release: ${pending.join(', ')}. The SDKs send the same canonical URL as the curl example.`] : []),
+    ...(comingSdks().length ? [`Coming: ${comingSdks().map((s) => `${s.label} ([${s.repoName}](${s.repo}))`).join(', ')}.`] : []),
   ].join('\n\n');
 };
 
 const sdkMd = (sdk: string, task: Task) => {
-  const t = tabsFor(task).find((x) => x.slug === sdk);
-  if (!t) throw new Error(`unknown sdk ${sdk}`);
+  const t = sdkTabFor(task, sdk);
   return t.code ? fence(t.code, t.hl) : t.placeholder ?? '';
 };
 

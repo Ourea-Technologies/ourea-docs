@@ -35,7 +35,8 @@ export const SDKS = [
     package: 'ensemble-weather on npm',
     install: 'npm install ensemble-weather',
     registry: { name: 'npm', url: 'https://www.npmjs.com/package/ensemble-weather' },
-    reference: null,
+    // TypeDoc, built from the SDK's typedoc.json and published with GitHub Pages.
+    reference: { name: 'TypeDoc', url: 'https://ourea-technologies.github.io/ensemble-weather-typescript/' },
     transport: 'the platform fetch (browsers, Node.js and other runtimes with fetch)',
     page: '/weather-api/javascript/',
   },
@@ -61,7 +62,8 @@ export const SDKS = [
     package: 'EnsembleWeather on NuGet (namespace EnsembleWeather)',
     install: 'dotnet add package EnsembleWeather',
     registry: { name: 'NuGet', url: 'https://www.nuget.org/packages/EnsembleWeather' },
-    reference: null,
+    // DocFX, built from the SDK's docs/docfx.json and published with GitHub Pages.
+    reference: { name: 'DocFX', url: 'https://ourea-technologies.github.io/ensemble-weather-dotnet/' },
     transport: 'HttpClient and System.Text.Json',
     page: '/weather-api/csharp/',
   },
@@ -104,6 +106,45 @@ export const SDKS = [
     transport: 'URLSession',
     page: '/weather-api/swift/',
   },
+  {
+    slug: 'dart',
+    label: 'Dart',
+    hl: 'dart',
+    repoName: 'ensemble-weather-dart',
+    refKey: 'dart',
+    package: 'ensemble_weather on pub.dev (import package:ensemble_weather/ensemble_weather.dart)',
+    install: 'dart pub add ensemble_weather',
+    registry: { name: 'pub.dev', url: 'https://pub.dev/packages/ensemble_weather' },
+    reference: { name: 'pub.dev API docs', url: 'https://pub.dev/documentation/ensemble_weather/latest/' },
+    transport: 'package:http, the one runtime dependency (Flutter on Android, iOS, desktop and web, and the Dart VM)',
+    page: '/weather-api/dart/',
+  },
+  {
+    slug: 'r',
+    label: 'R',
+    hl: 'r',
+    repoName: 'ensemble-weather-r',
+    refKey: 'r',
+    package: 'ensembleweather on CRAN (library(ensembleweather))',
+    install: 'install.packages("ensembleweather")',
+    registry: { name: 'CRAN', url: 'https://cran.r-project.org/package=ensembleweather' },
+    reference: { name: 'pkgdown', url: 'https://ourea-technologies.github.io/ensemble-weather-r/' },
+    transport: 'httr2 (with cli and jsonlite)',
+    page: '/weather-api/r/',
+  },
+  {
+    slug: 'rust',
+    label: 'Rust',
+    hl: 'rust',
+    repoName: 'ensemble-weather-rust',
+    refKey: 'rust',
+    package: 'ensemble-weather on crates.io (crate ensemble_weather)',
+    install: 'cargo add ensemble-weather',
+    registry: { name: 'crates.io', url: 'https://crates.io/crates/ensemble-weather' },
+    reference: { name: 'docs.rs', url: 'https://docs.rs/ensemble-weather' },
+    transport: 'reqwest with rustls on Tokio; a blocking client behind the `blocking` feature',
+    page: '/weather-api/rust/',
+  },
 ];
 
 for (const s of SDKS) {
@@ -113,4 +154,4 @@ for (const s of SDKS) {
 export const ALL = [...TRANSPORTS, ...SDKS];
 
 /** ?lang= aliases a reader might type. */
-export const ALIASES = { dotnet: 'csharp', cs: 'csharp', ts: 'typescript', js: 'typescript', javascript: 'typescript', node: 'typescript', rest: 'curl', http: 'curl', 'capn-proto': 'capnp' };
+export const ALIASES = { dotnet: 'csharp', cs: 'csharp', ts: 'typescript', js: 'typescript', javascript: 'typescript', node: 'typescript', flutter: 'dart', rs: 'rust', rlang: 'r', rest: 'curl', http: 'curl', 'capn-proto': 'capnp' };

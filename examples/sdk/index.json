@@ -51,8 +51,8 @@
     }
   },
   "dotnet": {
-    "ref": "1017e37e6417",
-    "commit": "1017e37e641711d847a4cb07680be0580386c75a",
+    "ref": "dd0e9b97a688",
+    "commit": "dd0e9b97a688276fe319d4a153155e6576f90869",
     "runtime": "net8.0, netstandard2.0",
     "tasks": {
       "quickstart": "examples/sdk/dotnet/Quickstart/Program.cs",
@@ -68,14 +68,38 @@
     }
   },
   "java": {
-    "ref": null,
-    "runtime": null,
-    "tasks": {}
+    "ref": "c588d4987efe",
+    "commit": "c588d4987efe88709abeb86ec57303d4d87abe9f",
+    "runtime": "Java 11+",
+    "tasks": {
+      "quickstart": "examples/sdk/java/Quickstart.java",
+      "point-forecast": "examples/sdk/java/PointForecast.java",
+      "search": "examples/sdk/java/SearchAndCatalog.java",
+      "list-locations": "examples/sdk/java/SearchAndCatalog.java",
+      "chance-of-snow": "examples/sdk/java/ChanceOfSnow.java",
+      "storm-total": "examples/sdk/java/StormTotal.java",
+      "current-and-alerts": "examples/sdk/java/CurrentAndAlerts.java",
+      "units": "examples/sdk/java/Units.java",
+      "errors": "examples/sdk/java/ErrorHandling.java",
+      "rate-limits": "examples/sdk/java/ErrorHandling.java"
+    }
   },
   "kotlin": {
-    "ref": null,
-    "runtime": null,
-    "tasks": {}
+    "ref": "bc61bc640131",
+    "commit": "bc61bc6401317ef5807d5bf46b6b051f355bb3ae",
+    "runtime": "Java 11+",
+    "tasks": {
+      "quickstart": "examples/sdk/kotlin/Quickstart.kt",
+      "point-forecast": "examples/sdk/kotlin/PointForecast.kt",
+      "search": "examples/sdk/kotlin/SearchAndCatalog.kt",
+      "list-locations": "examples/sdk/kotlin/SearchAndCatalog.kt",
+      "chance-of-snow": "examples/sdk/kotlin/ChanceOfSnow.kt",
+      "storm-total": "examples/sdk/kotlin/StormTotal.kt",
+      "current-and-alerts": "examples/sdk/kotlin/CurrentAndAlerts.kt",
+      "units": "examples/sdk/kotlin/Units.kt",
+      "errors": "examples/sdk/kotlin/ErrorHandling.kt",
+      "rate-limits": "examples/sdk/kotlin/ErrorHandling.kt"
+    }
   },
   "swift": {
     "ref": "eb86e27a39ee",
@@ -93,5 +117,44 @@
       "errors": "examples/sdk/swift/Sources/ErrorHandling/main.swift",
       "rate-limits": "examples/sdk/swift/Sources/ErrorHandling/main.swift"
     }
+  },
+  "dart": {
+    "ref": "8f5a704966c4",
+    "commit": "8f5a704966c4ed78b9b6a43f0eaf693966b88d44",
+    "runtime": "Dart 3.5+",
+    "tasks": {
+      "quickstart": "examples/sdk/dart/quickstart.dart",
+      "point-forecast": "examples/sdk/dart/point_forecast.dart",
+      "search": "examples/sdk/dart/search_and_catalog.dart",
+      "list-locations": "examples/sdk/dart/search_and_catalog.dart",
+      "chance-of-snow": "examples/sdk/dart/chance_of_snow.dart",
+      "storm-total": "examples/sdk/dart/storm_total.dart",
+      "current-and-alerts": "examples/sdk/dart/current_and_alerts.dart",
+      "units": "examples/sdk/dart/units.dart",
+      "errors": "examples/sdk/dart/error_handling.dart",
+      "rate-limits": "examples/sdk/dart/error_handling.dart"
+    }
+  },
+  "r": {
+    "ref": "70a6d2a53ce8",
+    "commit": "70a6d2a53ce86d0f4c36be2c1e50894e0870e235",
+    "runtime": "R 4.1+",
+    "tasks": {
+      "quickstart": "examples/sdk/r/quickstart.R",
+      "point-forecast": "examples/sdk/r/point_forecast.R",
+      "search": "examples/sdk/r/search_and_catalog.R",
+      "list-locations": "examples/sdk/r/search_and_catalog.R",
+      "chance-of-snow": "examples/sdk/r/chance_of_snow.R",
+      "storm-total": "examples/sdk/r/storm_total.R",
+      "current-and-alerts": "examples/sdk/r/current_and_alerts.R",
+      "units": "examples/sdk/r/units.R",
+      "errors": "examples/sdk/r/error_handling.R",
+      "rate-limits": "examples/sdk/r/error_handling.R"
+    }
+  },
+  "rust": {
+    "ref": null,
+    "runtime": null,
+    "tasks": {}
   }
 }

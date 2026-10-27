@@ -1,0 +1,70 @@
+---
+title: "Weather API for R"
+seoTitle: "Weather API for R · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from R: install ensembleweather, get an hourly forecast with no key as a data frame, and ask for snow chances."
+schemaType: SoftwareSourceCode
+sdk: r
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import ExampleResponse from '../../../components/ExampleResponse.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`ensembleweather` is the official R package: forecasts arrive as data frames, ready for the tidyverse or base R. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Install
+
+<LanguageNotes sdk="r" />
+
+<Aside type="note">
+The package's first release is 0.1.0. Until it is on CRAN, the curl tab of
+any example on this site shows the exact request it sends.
+</Aside>
+
+## Quickstart
+
+No key needed:
+
+<SdkExample sdk="r" task="quickstart" />
+
+The package turns the response into data frames. This is the response to the
+quickstart's request as the curl example sends it:
+
+<ExampleResponse task="quickstart" open={false} />
+
+## Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="r" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+## Storm totals
+
+<SdkExample sdk="r" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+A probability the server could not answer is `NA`, never 0. The package
+reference, with every function and its arguments, is the
+[pkgdown site](https://ourea-technologies.github.io/ensemble-weather-r/).
+
+- [Getting started](/getting-started/?lang=r) shows every example on the
+  site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

@@ -49,11 +49,12 @@ toolchains you don't have. The real API is never called by the checks.
 - `examples/curl/` and `examples/capnp/` are this repository's own runnable
   examples; edit them and run the checks.
 - `examples/sdk/<lang>/` is **copied** from each SDK repository's `examples/`
-  at the ref pinned in `examples/sdk-refs.json`, by
+  (Dart's `example/`) at the ref pinned in `examples/sdk-refs.json`, by
   `node scripts/sync-examples.mjs` (add `--remote` to clone from GitHub). To
   fix an SDK example, change it in the SDK repository, then bump the ref here
   and re-run the sync. A task an SDK has no example for shows a "coming in
-  0.1" placeholder.
+  0.1" placeholder; an SDK with no ref pinned yet has no tab and is listed
+  as coming.
 - `spec/` (the vectors and `spec/openapi/v1/openapi.yaml`) comes from
   [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec)
   at `spec/VERSION` (`node scripts/sync-spec.mjs`); `public/schema/v1/` is the

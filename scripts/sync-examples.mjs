@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026 Ourea Technologies
 //
-// Copies each official SDK's examples/ directory into examples/sdk/<lang>/,
+// Copies each official SDK's examples directory (examples/, or the `examples`
+// directory named in sdk-refs.json, such as Dart's example/) into examples/sdk/<lang>/,
 // at the ref pinned for that SDK in examples/sdk-refs.json, and writes
 // examples/sdk/index.json: which file shows which docs task, plus the minimum
 // runtime read from the SDK's own manifest at that ref. The docs pages include
@@ -13,8 +14,8 @@
 //   node scripts/sync-examples.mjs --remote        always clone from GitHub at the ref
 //   node scripts/sync-examples.mjs --refs <file>   another refs file (tests)
 //
-// A ref of null means "nothing released to pin yet": that SDK's tabs show a
-// "coming in <SDK> 0.1" placeholder. Bump a ref by editing sdk-refs.json and
+// A ref of null means "nothing released to pin yet": that SDK gets no tab and
+// is listed as coming under the examples. Bump a ref by editing sdk-refs.json and
 // re-running this script; review the diff of examples/sdk/ like any change.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -74,6 +75,15 @@ const minimumRuntime = (lang, show, list) => {
       }
       return null;
     }
+    case 'dart':
+      m = /^\s*sdk:\s*['"]?\^?>?=?\s*(\d+\.\d+)/m.exec(read('pubspec.yaml'));
+      return m ? `Dart ${m[1]}+` : null;
+    case 'r':
+      m = /R \(>= ([\d.]+)\)/.exec(read('DESCRIPTION'));
+      return m ? `R ${m[1]}+` : null;
+    case 'rust':
+      m = /^rust-version\s*=\s*"([^"]+)"/m.exec(read('Cargo.toml'));
+      return m ? `Rust ${m[1]}+` : null;
     case 'swift': {
       const t = read('Package.swift');
       m = /swift-tools-version:\s*([\d.]+)/.exec(t);
@@ -92,7 +102,7 @@ for (const [lang, sdk] of Object.entries(refs.sdks)) {
   rmSync(outDir, { recursive: true, force: true });
   if (!sdk.ref) {
     index[lang] = { ref: null, runtime: null, tasks: {} };
-    console.log(`${lang}: no ref pinned yet; every ${sdk.name} tab is a placeholder`);
+    console.log(`${lang}: no ref pinned yet; ${sdk.name} has no tab and is listed as coming`);
     continue;
   }
   let source = resolve(root, sdk.local); // relative to the docs repo, or absolute
@@ -104,9 +114,10 @@ for (const [lang, sdk] of Object.entries(refs.sdks)) {
   const git = (...a) => execFileSync('git', ['-C', source, ...a], { maxBuffer: 1 << 26 });
   const commit = git('rev-parse', `${sdk.ref}^{commit}`).toString().trim();
   const all = git('ls-tree', '-r', '--name-only', commit).toString().split('\n').filter(Boolean);
-  const examples = all.filter((p) => p.startsWith('examples/'));
+  const dir = `${sdk.examples ?? 'examples'}/`;
+  const examples = all.filter((p) => p.startsWith(dir));
   for (const p of examples) {
-    const dest = join(outDir, p.slice('examples/'.length));
+    const dest = join(outDir, p.slice(dir.length));
     mkdirSync(dirname(dest), { recursive: true });
     writeFileSync(dest, git('show', `${commit}:${p}`));
   }
@@ -116,7 +127,7 @@ for (const [lang, sdk] of Object.entries(refs.sdks)) {
   const programs = new Map();
   for (const p of examples) {
     if (plumbing.test(p) || !p.endsWith(sdk.ext)) continue;
-    const rel = p.slice('examples/'.length);
+    const rel = p.slice(dir.length);
     const parts = rel.split('/');
     const base = posix.basename(rel, sdk.ext);
     const keys = parts.length === 1 ? [base] : [parts[0], ...(parts.length > 2 ? [parts.at(-2)] : []), base];

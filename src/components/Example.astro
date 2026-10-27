@@ -6,7 +6,7 @@
 // "lang": choosing a tab switches every group on the page, and ?lang= in
 // the URL deep-links it). The code is the example file itself.
 import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
-import { tabsFor, taskInfo, type Task } from '../lib/examples';
+import { comingSdks, tabsFor, taskInfo, type Task } from '../lib/examples';
 
 interface Props {
   task: Task;
@@ -48,4 +48,18 @@ const info = taskInfo(task);
       ))
     }
   </Tabs>
+  {
+    comingSdks().length > 0 && (
+      <p class="ourea-example__coming">
+        Coming:{' '}
+        {comingSdks().map((s, i) => (
+          <>
+            {i > 0 && ', '}
+            <a href={s.page}>{s.label}</a>
+          </>
+        ))}
+        .
+      </p>
+    )
+  }
 </div>
