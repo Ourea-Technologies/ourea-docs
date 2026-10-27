@@ -1,0 +1,88 @@
+---
+title: "Use Ourea with AI agents"
+seoTitle: "Use Ourea with AI agents: docs MCP server"
+description: "Connect Claude, Cursor or VS Code to the Ourea docs MCP server, and give coding agents the API's rules as Markdown: llms.txt and a .md for every page."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Coding agents write better Ourea code when they read these docs instead of
+guessing: the canonical URL rules, server-side probabilities and window
+totals, and "never add quantiles across hours" are easy to get wrong from
+memory. There are three ways to hand them the docs.
+
+## The docs MCP server
+
+`https://docs.oureawx.com/mcp` is a [Model Context Protocol](https://modelcontextprotocol.io)
+server over Streamable HTTP. It is **read-only and needs no key**, and it
+returns this site's own text, never a generated answer. Two tools:
+
+| Tool | What it does |
+|---|---|
+| `search_docs` | Full-text search over every page and every API operation. Returns the best sections with their page path and a snippet. |
+| `read_page` | The full Markdown of one page or API operation (a path from `search_docs`, a docs URL, or an operationId such as `getLocationForecast`), exactly as published. |
+
+### Claude Code
+
+```sh
+claude mcp add --transport http ourea-docs https://docs.oureawx.com/mcp
+```
+
+### Claude (claude.ai and the desktop app)
+
+Open **Settings → Connectors → Add custom connector**, name it
+`Ourea Docs` and enter `https://docs.oureawx.com/mcp`. No authentication is
+needed.
+
+### Cursor
+
+In `~/.cursor/mcp.json`, or `.cursor/mcp.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "ourea-docs": { "url": "https://docs.oureawx.com/mcp" }
+  }
+}
+```
+
+### VS Code
+
+In `.vscode/mcp.json` in your workspace (or run **MCP: Add Server** and
+choose HTTP):
+
+```json
+{
+  "servers": {
+    "ourea-docs": { "type": "http", "url": "https://docs.oureawx.com/mcp" }
+  }
+}
+```
+
+Other clients that speak Streamable HTTP connect the same way, with the URL
+alone.
+
+<Aside type="tip">
+Ask the agent to search the docs before it writes a request, for example
+"Use ourea-docs to find how to ask for the chance of 6 inches of snow in 24
+hours, then write the call in Python."
+</Aside>
+
+## Markdown for every page
+
+- **Every page has a Markdown alternate:** add `.md` to its path
+  ([/features/probabilities.md](/features/probabilities.md)), or use **Copy
+  page as Markdown** under any page title. The same menu opens the page in
+  Claude or ChatGPT.
+- **Every API operation** has one too, with its parameters, responses and
+  tested examples: [/api/getLocationForecast.md](/api/getLocationForecast.md).
+- **[llms.txt](/llms.txt)** lists every page and operation with a one-line
+  summary and the API's rules; **[llms-full.txt](/llms-full.txt)** is all of
+  it in one file, for a context window that can hold it.
+
+## The examples agents should copy
+
+The examples on this site are files that CI runs against a mock of the API on
+every change, and the [request builder](/request-builder/) writes canonical
+URLs. Point an agent at them rather than letting it improvise a URL: a
+non-canonical spelling still works, but costs a cache miss or a redirect.

@@ -29,12 +29,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # The request builder's canonical URLs against the spec's vectors and
-      # the mock API.
-      - run: npm run test:unit
       # Includes starlight-links-validator: every internal link and #anchor in
       # the content must resolve, or the build fails.
       - run: npm run build
+      # The request builder's canonical URLs against the spec's vectors and
+      # the mock API, and the docs MCP server against the built site.
+      - run: npm run test:unit
       # Titles, descriptions, canonicals, OG/Twitter, JSON-LD, sitemap
       # coverage, robots.txt, and every href/src in the built HTML.
       - run: node scripts/check-seo.mjs dist

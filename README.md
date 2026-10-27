@@ -43,6 +43,17 @@ pointing at that Markdown. The API reference has one Markdown page per
 operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
 `llms.txt` and appended to `llms-full.txt`.
 
+## The docs MCP server
+
+`workers/docs/` is the site's one Worker script: every path is a static file
+except `/mcp`, a read-only, keyless MCP server (Streamable HTTP) with
+`search_docs` over a build-time index (`/mcp/index.json`) and `read_page`,
+which returns a page's own Markdown. Try it locally:
+
+```sh
+npm run build && npx wrangler dev     # then POST JSON-RPC to http://localhost:8787/mcp
+```
+
 ## Checks
 
 - `scripts/check-examples.mjs`: every referenced example exists, then runs
@@ -51,7 +62,8 @@ operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
   Cap'n Proto decoders against the golden message.
 - `tests/*.test.mjs` (`npm run test:unit`): the request builder's
   canonical URLs against the spec's `canonical/`, `prob/`, `totals/` and
-  `request/` vectors, and against the mock API.
+  `request/` vectors, and against the mock API; the docs MCP server
+  against the built site.
 - `scripts/check-reference.mjs`: the served OpenAPI file differs from the
   pinned spec only by `x-codeSamples`; every operation has at least a curl
   sample; every sample is text from a tested example file.
@@ -62,7 +74,7 @@ operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
 
 ## Deploy
 
-`wrangler.jsonc` describes the Worker; the `docs.oureawx.com` custom domain
+`wrangler.jsonc` describes the Worker (static assets plus `/mcp`); the `docs.oureawx.com` custom domain
 comes from Terraform in the Ourea repository. Deploys are manual.
 
 ## Contributing

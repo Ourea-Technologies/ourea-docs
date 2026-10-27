@@ -12,7 +12,7 @@ import { operationPages } from './operation-md.mjs';
 const LANGUAGE_PAGES = new Set([...SDKS.map((s) => s.page.replace(/^\/|\/$/g, '')), 'weather-api/nodejs']);
 
 const SECTIONS: [string, (id: string) => boolean][] = [
-  ['Start here', (id) => ['index', '', 'getting-started', 'request-builder', 'faq'].includes(id)],
+  ['Start here', (id) => ['index', '', 'getting-started', 'request-builder', 'ai-agents', 'faq'].includes(id)],
   ['Weather API', (id) => id.startsWith('weather-api') && !LANGUAGE_PAGES.has(id)],
   ['By language', (id) => LANGUAGE_PAGES.has(id)],
   ['Features', (id) => id.startsWith('features/')],

@@ -47,7 +47,7 @@ export default defineConfig({
         { tag: 'script', content: langSwitcherScript },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
       ],
-      plugins: [starlightLinksValidator({ errorOnLocalLinks: true, errorOnFallbackPages: false, exclude: ['/api/', '/api/**', '/schema/**', '/openapi/**', '/llms.txt', '/llms-full.txt'] })],
+      plugins: [starlightLinksValidator({ errorOnLocalLinks: true, errorOnFallbackPages: false, exclude: ['/api/', '/api/**', '/schema/**', '/openapi/**', '/llms.txt', '/llms-full.txt', '/**/*.md', '/*.md'] })],
       sidebar: [
         {
           label: 'Start here',
@@ -55,6 +55,7 @@ export default defineConfig({
             { label: 'Overview', link: '/' },
             { label: 'Getting started', link: '/getting-started/' },
             { label: 'Request builder', link: '/request-builder/' },
+            { label: 'Use Ourea with AI agents', link: '/ai-agents/' },
             { label: 'FAQ', link: '/faq/' },
             { label: 'Contribute and get help', link: '/community/' },
           ],
