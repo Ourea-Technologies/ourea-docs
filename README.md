@@ -43,6 +43,9 @@ value.
   the curl and Cap'n Proto CLI scripts against `scripts/mock-server.mjs`
   (answers from the spec's test vectors), the no-SDK quickstarts, and the
   Cap'n Proto decoders against the golden message.
+- `tests/*.test.mjs` (`npm run test:unit`): the request builder's
+  canonical URLs against the spec's `canonical/`, `prob/`, `totals/` and
+  `request/` vectors, and against the mock API.
 - `scripts/check-reference.mjs`: the served OpenAPI file differs from the
   pinned spec only by `x-codeSamples`; every operation has at least a curl
   sample; every sample is text from a tested example file.

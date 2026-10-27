@@ -46,6 +46,7 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
   [/<RateLimitTable\s*\/>/g, () => toMarkdown(rateLimitTable())],
   [/<FaqList\s*\/>/g, () => FAQ.map((f) => `## ${f.q}\n\n${f.a}${f.link ? `\n\n[${f.link.text}](${f.link.href})` : ''}`).join('\n\n')],
   [/<CapnpDecoders\s*\/>/g, () => CAPNP_DECODERS.map((d) => `**${d.label}**\n\n${fence(raw(d.path), d.hl, d.path)}`).join('\n\n')],
+  [/<RequestBuilder\s*\/>/g, () => '_The interactive builder is on the web page: https://docs.oureawx.com/request-builder/. The rules it follows are below._'],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

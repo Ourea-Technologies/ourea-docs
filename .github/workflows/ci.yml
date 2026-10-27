@@ -29,6 +29,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # The request builder's canonical URLs against the spec's vectors and
+      # the mock API.
+      - run: npm run test:unit
       # Includes starlight-links-validator: every internal link and #anchor in
       # the content must resolve, or the build fails.
       - run: npm run build

@@ -1,0 +1,288 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The request builder: a small form that writes the canonical forecast URL
+// (src/lib/canonical.mjs, unit-tested against the spec's vectors) and the
+// same call in every language (src/lib/builder-snippets.mjs). It formats
+// strings only and sends nothing. The parameter defaults and ranges come
+// from the OpenAPI spec at build time.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+import YAML from 'yaml';
+import { SPEC_PATH } from '../lib/code-samples.mjs';
+import { ALL } from '../lib/languages.mjs';
+import { MAX_WINDOW_HOURS, PROB_VARIABLES, TOTAL_VARIABLES } from '../lib/canonical.mjs';
+
+const spec = YAML.parse(readFileSync(join(process.cwd(), SPEC_PATH), 'utf8'));
+const resolveRef = (o: any) => (o?.$ref ? o.$ref.replace(/^#\//, '').split('/').reduce((a: any, k: string) => a[k], spec) : o);
+const params = Object.fromEntries(
+  spec.paths['/api/v1/locations/{state}/{name}'].get.parameters
+    .map(resolveRef)
+    .filter((p: any) => p.in === 'query')
+    .map((p: any) => [p.name, resolveRef(p.schema ?? {})]),
+);
+const defaults = Object.fromEntries(Object.entries(params).flatMap(([k, s]: [string, any]) => (s.default === undefined ? [] : [[k, s.default]])));
+const searchDefaults = Object.fromEntries(
+  spec.paths['/api/v1/search/locations'].get.parameters
+    .map(resolveRef)
+    .filter((p: any) => p.in === 'query' && resolveRef(p.schema ?? {}).default !== undefined)
+    .map((p: any) => [p.name, resolveRef(p.schema).default]),
+);
+const units: string[] = params.units.enum;
+const maxHours = params.max_hours;
+const maxDays = params.max_days;
+const flags = ['hourly', 'daily', 'members', 'include_past', 'nowcast'].filter((f) => params[f]);
+---
+
+<div class="ourea-builder" data-defaults={JSON.stringify(defaults)} data-search-defaults={JSON.stringify(searchDefaults)}>
+  <form class="ourea-builder__form" onsubmit="return false">
+    <label>
+      Location <span class="ourea-builder__hint">state/slug, or a name to search for</span>
+      <input name="location" value="or/mt-hood-meadows" autocomplete="off" spellcheck="false" />
+    </label>
+    <div class="ourea-builder__row">
+      <label>
+        Units
+        <select name="units">{units.map((u) => <option value={u} selected={u === 'imperial'}>{u}</option>)}</select>
+      </label>
+      <label>
+        Hours (<code>max_hours</code>)
+        <input name="max_hours" type="number" min={maxHours.minimum} max={maxHours.maximum} value={defaults.max_hours} />
+      </label>
+      <label>
+        Days (<code>max_days</code>)
+        <input name="max_days" type="number" min={maxDays.minimum} max={maxDays.maximum} placeholder="default" />
+      </label>
+    </div>
+    <fieldset class="ourea-builder__flags">
+      <legend>Parts of the response</legend>
+      {
+        flags.map((f) => (
+          <label>
+            <input type="checkbox" name={f} checked={defaults[f] === true} /> <code>{f}</code>
+          </label>
+        ))
+      }
+    </fieldset>
+    <fieldset>
+      <legend>Probabilities (<code>prob=</code>), thresholds in the request's units</legend>
+      <div data-rows="prob"></div>
+      <button type="button" data-add="prob">Add a probability</button>
+    </fieldset>
+    <fieldset>
+      <legend>Window totals (<code>totals=</code>)</legend>
+      <div data-rows="totals"></div>
+      <button type="button" data-add="totals">Add a window total</button>
+    </fieldset>
+  </form>
+
+  <template data-row="prob">
+    <div class="ourea-builder__term">
+      <select name="variable" aria-label="Variable">{PROB_VARIABLES.map((v) => <option>{v}</option>)}</select>
+      <select name="op" aria-label="At least or at most"><option value="ge">at least</option><option value="le">at most</option></select>
+      <input name="threshold" type="number" step="any" aria-label="Threshold" value="6" />
+      <span>from h</span><input name="start" type="number" min="0" max={MAX_WINDOW_HOURS} value="0" aria-label="Window start, hours" />
+      <span>to h</span><input name="end" type="number" min="1" max={MAX_WINDOW_HOURS} value="24" aria-label="Window end, hours" />
+      <select name="aggregation" aria-label="Aggregation"><option value="">default</option><option>total</option><option>any</option><option>all</option></select>
+      <button type="button" data-remove aria-label="Remove">✕</button>
+    </div>
+  </template>
+  <template data-row="totals">
+    <div class="ourea-builder__term">
+      <select name="variable" aria-label="Variable">{TOTAL_VARIABLES.map((v) => <option>{v}</option>)}</select>
+      <span>from h</span><input name="start" type="number" min="0" max={MAX_WINDOW_HOURS} value="0" aria-label="Window start, hours" />
+      <span>to h</span><input name="end" type="number" min="1" max={MAX_WINDOW_HOURS} value="48" aria-label="Window end, hours" />
+      <button type="button" data-remove aria-label="Remove">✕</button>
+    </div>
+  </template>
+
+  <p class="ourea-builder__label">The canonical URL</p>
+  <div class="ourea-builder__url">
+    <code data-out="url"></code>
+    <button type="button" data-copy="url">Copy</button>
+  </div>
+  <p class="ourea-builder__error" data-out="error" role="alert" hidden></p>
+
+  <Tabs syncKey="lang">
+    {
+      ALL.map((l) => (
+        <TabItem label={l.label}>
+          <div class="ourea-builder__code">
+            <pre><code data-snippet={l.slug} /></pre>
+            <button type="button" data-copy={l.slug}>Copy</button>
+          </div>
+        </TabItem>
+      ))
+    }
+  </Tabs>
+</div>
+
+<script>
+  import { canonicalQuery, locationPath, probParam, totalsParam } from '../lib/canonical.mjs';
+  import { SNIPPETS } from '../lib/builder-snippets.mjs';
+
+  const API = 'https://api.oureawx.com';
+  for (const root of document.querySelectorAll<HTMLElement>('.ourea-builder')) {
+    const defaults = JSON.parse(root.dataset.defaults ?? '{}');
+    const searchDefaults = JSON.parse(root.dataset.searchDefaults ?? '{}');
+    const form = root.querySelector('form')!;
+    const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+    const num = (el: Element | null) => {
+      const v = (el as HTMLInputElement | null)?.value ?? '';
+      return v === '' ? undefined : Number(v);
+    };
+    const rows = (kind: string) => [...root.querySelectorAll(`[data-rows="${kind}"] .ourea-builder__term`)];
+    const pick = (row: Element, name: string) => row.querySelector<HTMLInputElement>(`[name="${name}"]`)!;
+
+    const build = () => {
+      const loc = field('location').value.trim();
+      if (!loc.includes('/')) {
+        // Not a slug yet: the search call that finds one.
+        return `${API}/api/v1/search/locations${loc.length >= 2 ? `?${canonicalQuery({ q: loc }, searchDefaults)}` : ''}`;
+      }
+      const [state, ...rest] = loc.split('/');
+      const units = field('units').value;
+      const prob = rows('prob').map((r) => ({
+        variable: pick(r, 'variable').value,
+        op: pick(r, 'op').value,
+        threshold: num(pick(r, 'threshold')) ?? NaN,
+        window: { start: num(pick(r, 'start')) ?? 0, end: num(pick(r, 'end')) ?? NaN },
+        aggregation: pick(r, 'aggregation').value || undefined,
+      }));
+      const totals = rows('totals').map((r) => ({
+        variable: pick(r, 'variable').value,
+        window: { start: num(pick(r, 'start')) ?? 0, end: num(pick(r, 'end')) ?? NaN },
+      }));
+      const values: Record<string, unknown> = {
+        units,
+        max_hours: num(field('max_hours')),
+        max_days: num(field('max_days')),
+        prob: prob.length ? probParam(prob, units) : undefined,
+        totals: totals.length ? totalsParam(totals) : undefined,
+      };
+      for (const el of form.querySelectorAll<HTMLInputElement>('.ourea-builder__flags input')) values[el.name] = el.checked;
+      const query = canonicalQuery(values, defaults);
+      return `${API}${locationPath(state, rest.join('/'))}${query ? `?${query}` : ''}`;
+    };
+
+    const error = root.querySelector<HTMLElement>('[data-out="error"]')!;
+    const update = () => {
+      let url: string;
+      try {
+        url = build();
+        error.hidden = true;
+      } catch (e) {
+        error.textContent = (e as Error).message;
+        error.hidden = false;
+        return;
+      }
+      root.querySelector('[data-out="url"]')!.textContent = url;
+      const isSearch = url.includes('/search/');
+      for (const el of root.querySelectorAll<HTMLElement>('[data-snippet]')) {
+        const slug = el.dataset.snippet as keyof typeof SNIPPETS;
+        el.textContent = isSearch && slug === 'capnp' ? SNIPPETS.capnp(url).replace('ForecastResponse', 'SearchLocationsResponse') : SNIPPETS[slug](url);
+      }
+    };
+
+    root.addEventListener('click', (event) => {
+      const t = event.target as HTMLElement;
+      const add = t.closest<HTMLElement>('[data-add]');
+      if (add) {
+        const tpl = root.querySelector<HTMLTemplateElement>(`template[data-row="${add.dataset.add}"]`)!;
+        root.querySelector(`[data-rows="${add.dataset.add}"]`)!.append(tpl.content.cloneNode(true));
+      }
+      if (t.closest('[data-remove]')) t.closest('.ourea-builder__term')?.remove();
+      const copy = t.closest<HTMLElement>('[data-copy]');
+      if (copy) {
+        const src = copy.dataset.copy === 'url' ? root.querySelector('[data-out="url"]') : root.querySelector(`[data-snippet="${copy.dataset.copy}"]`);
+        navigator.clipboard?.writeText(src?.textContent ?? '').then(() => {
+          copy.textContent = 'Copied';
+          setTimeout(() => (copy.textContent = 'Copy'), 1500);
+        });
+      }
+      update();
+    });
+    form.addEventListener('input', update);
+    // Start from the quickstart's request: a 6 in snowfall chance over 24 h.
+    root.querySelector<HTMLElement>('[data-add="prob"]')!.click();
+    pick(rows('prob')[0], 'variable').value = 'snowfall';
+    update();
+  }
+</script>
+
+<style>
+  .ourea-builder__form label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-sm);
+  }
+  .ourea-builder__form input,
+  .ourea-builder__form select {
+    font: inherit;
+    max-width: 100%;
+  }
+  .ourea-builder__form input[name='location'] {
+    display: block;
+    width: 100%;
+  }
+  .ourea-builder__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.25rem;
+  }
+  .ourea-builder__row input {
+    width: 6rem;
+  }
+  .ourea-builder fieldset {
+    margin-top: 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .ourea-builder__flags label {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+  .ourea-builder__term {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.35rem 0;
+    font-size: var(--sl-text-sm);
+  }
+  .ourea-builder__term input[type='number'] {
+    width: 5rem;
+  }
+  .ourea-builder__hint {
+    color: var(--sl-color-gray-3);
+  }
+  .ourea-builder__label {
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  .ourea-builder__url,
+  .ourea-builder__code {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .ourea-builder__url code {
+    flex: 1;
+    overflow-wrap: anywhere;
+    padding: 0.5rem;
+  }
+  .ourea-builder__code pre {
+    flex: 1;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0.75rem;
+    font-size: var(--sl-text-xs);
+    background: var(--sl-color-gray-6);
+  }
+  .ourea-builder__error {
+    color: var(--sl-color-red);
+  }
+</style>

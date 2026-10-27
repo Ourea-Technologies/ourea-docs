@@ -1,0 +1,41 @@
+---
+title: "Request builder"
+seoTitle: "Request builder · canonical forecast URLs"
+description: "Build a canonical Ourea forecast URL with probabilities and window totals, then copy the same call in curl, Python, TypeScript, Go, C#, Java and more."
+---
+
+import RequestBuilder from '../../components/RequestBuilder.astro';
+
+Pick a place, the parts of the forecast you want, and any probabilities or
+window totals. The builder writes the **canonical URL**: the one spelling the
+API's edge cache and every official SDK use, so your request shares cached
+responses with everyone else's. It only formats the URL; it sends nothing.
+
+<RequestBuilder />
+
+## The rules it follows
+
+The same rules the SDKs follow, from the API spec:
+
+- **No parameter at its default.** `units=metric`, `max_hours=24`,
+  `hourly=true`, `daily=true` and `nowcast=true` are left out.
+- **Alphabetical order** by parameter name, each parameter once.
+- **Percent-encoding** of every value (RFC 3986: a space is `%20`), except
+  that `prob` and `totals` keep their `:` and `,` literal.
+- **Probability terms** read `<variable>:<ge|le>:<threshold>:<window>`, with
+  `:<aggregation>` only when it is not the default (`total` for
+  precipitation and snowfall, `any` for the rest). The window is `<N>h` from
+  the first served hour, or `<A>-<B>h`. Terms are de-duplicated and sorted
+  by variable, then `ge` before `le`, then window, then aggregation, then
+  threshold.
+- **Thresholds** are in the request's units, at the variable's served
+  precision: 2 decimals for metric amounts (mm), 3 for imperial amounts (in),
+  1 for temperature and wind speed, 0 for snow level, rounded half away from
+  zero.
+- **Window totals** read `<precipitation|snowfall>:<window>`, sorted by
+  variable, then window.
+
+Type a place name instead of `state/slug` and the builder writes the search
+call that finds the slug. See [Ways to ask for a place](/features/places/),
+[Probabilities](/features/probabilities/), [Window totals](/features/window-totals/)
+and [Caching and ETags](/features/caching/) for what each part returns.

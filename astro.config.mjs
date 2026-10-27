@@ -54,6 +54,7 @@ export default defineConfig({
           items: [
             { label: 'Overview', link: '/' },
             { label: 'Getting started', link: '/getting-started/' },
+            { label: 'Request builder', link: '/request-builder/' },
             { label: 'FAQ', link: '/faq/' },
             { label: 'Contribute and get help', link: '/community/' },
           ],
