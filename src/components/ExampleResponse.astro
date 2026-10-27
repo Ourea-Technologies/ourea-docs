@@ -1,0 +1,29 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The response a task's example gets, trimmed and annotated
+// (src/lib/responses.mjs): the docs' mock API answers the example's own
+// request from the spec's test vectors at build time. Collapsed by default.
+import { Code } from '@astrojs/starlight/components';
+import { annotatedResponse } from '../lib/responses.mjs';
+import { marked } from '../lib/inline-md';
+import { RESPONSE_NOTE } from '../lib/responses-text';
+import type { Task } from '../lib/examples';
+
+interface Props {
+  task: Task;
+  open?: boolean;
+}
+const { task, open = true } = Astro.props;
+const r = annotatedResponse(process.cwd(), task);
+---
+
+<details class="ourea-response" open={open}>
+  <summary>The response <span class="ourea-response__req">{r.status} for <code>{r.request}</code></span></summary>
+  <p class="ourea-response__note" set:html={marked(RESPONSE_NOTE)} />
+  <Code code={r.code} lang="jsonc" title="Response (trimmed, annotated)" wrap />
+  <p class="ourea-response__links">
+    <a href="/concepts/quantiles/">What p10, p50 and p90 mean</a> · <a href="/features/probabilities/">Probabilities</a> · <a href="/api/" data-astro-reload>Every field in the API reference</a>
+  </p>
+</details>

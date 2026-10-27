@@ -53,6 +53,7 @@ for (const [name, t] of Object.entries(tasks)) {
   else if (!exists(t.curl)) fail(`manifest task ${name}: ${t.curl} does not exist`);
   const called = t.curl && exists(t.curl) ? opsCalled(t.curl) : [];
   if (called.some((o) => !o)) fail(`manifest task ${name}: ${t.curl} calls a path no operation in the spec matches`);
+  if (t.jq && !exists(t.jq)) fail(`manifest task ${name}: ${t.jq} does not exist`);
   if (t.capnp) {
     if (!exists(t.capnp)) fail(`manifest task ${name}: ${t.capnp} does not exist`);
   } else if (called.some((o) => o?.op.responses?.['200']?.content?.['application/x-capnp'])) {
@@ -65,7 +66,7 @@ for (const [name, t] of Object.entries(tasks)) {
 for (const dir of ['examples/curl', 'examples/capnp/cli']) {
   for (const f of readdirSync(join(root, dir)).filter((x) => x.endsWith('.sh'))) {
     const rel = `${dir}/${f}`;
-    if (!Object.values(tasks).some((t) => t.curl === rel || t.capnp === rel)) fail(`${rel} is not in examples/manifest.json`);
+    if (!Object.values(tasks).some((t) => t.curl === rel || t.jq === rel || t.capnp === rel)) fail(`${rel} is not in examples/manifest.json`);
   }
 }
 
@@ -92,10 +93,10 @@ let refsSeen = 0;
 for (const f of pages) {
   const rel = relative(root, join(root, 'src/content/docs', f));
   const text = readFileSync(join(root, 'src/content/docs', f), 'utf8');
-  for (const m of text.matchAll(/<(Example|SdkExample|HttpExample|LanguageNotes)\b([^>]*)\/>/g)) {
+  for (const m of text.matchAll(/<(Example|ExampleResponse|SdkExample|HttpExample|LanguageNotes)\b([^>]*)\/>/g)) {
     refsSeen++;
     const a = Object.fromEntries([...m[2].matchAll(/(\w+)="([^"]*)"/g)].map((x) => [x[1], x[2]]));
-    if ((m[1] === 'Example' || m[1] === 'SdkExample') && !tasks[a.task]) fail(`${rel}: <${m[1]} task="${a.task}"> is not in examples/manifest.json`);
+    if (['Example', 'ExampleResponse', 'SdkExample'].includes(m[1]) && !tasks[a.task]) fail(`${rel}: <${m[1]} task="${a.task}"> is not in examples/manifest.json`);
     if ((m[1] === 'SdkExample' || m[1] === 'LanguageNotes') && !sdkSlugs.has(a.sdk)) fail(`${rel}: <${m[1]} sdk="${a.sdk}"> is not an SDK`);
     if (m[1] === 'HttpExample' && !httpLangs.has(a.lang)) fail(`${rel}: <HttpExample lang="${a.lang}"> has no file`);
   }

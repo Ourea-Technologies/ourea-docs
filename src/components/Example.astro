@@ -29,6 +29,12 @@ const info = taskInfo(task);
           ) : (
             <p class="ourea-example__placeholder">{t.placeholder}</p>
           )}
+          {t.jq && (
+            <>
+              <p class="ourea-example__jq">Readable in a terminal: the same call, with <code>jq</code> picking out the answer.</p>
+              <Code code={t.jq} lang="bash" />
+            </>
+          )}
           <p class="ourea-example__links">
             {t.repo && <a href={t.repo}>{t.repo.replace('https://github.com/', '')}</a>}
             {t.repo && ' · '}

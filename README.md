@@ -31,6 +31,12 @@ examples added as `x-codeSamples` at build time
 (`src/lib/code-samples.mjs`), and its language picker follows the same
 switcher.
 
+Under the quickstarts, `<ExampleResponse task="...">` shows the response the
+example gets: the mock API (`scripts/mock-server.mjs`) answers the example's
+own request from the spec's test vectors at build time, and
+`src/lib/responses.mjs` trims and annotates the body without changing a
+value.
+
 ## Checks
 
 - `scripts/check-examples.mjs`: every referenced example exists, then runs

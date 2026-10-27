@@ -27,6 +27,8 @@ export interface TabCode {
   placeholder?: string;
   repo?: string;
   sourceUrl?: string;
+  /** curl only: the same call piped through jq, for a readable terminal. */
+  jq?: string;
 }
 
 export const raw = (path: string): string => {
@@ -56,7 +58,7 @@ export const tabsFor = (task: Task): TabCode[] => {
   if (!t) throw new Error(`unknown example task: ${task}`);
   const [curl, capnp] = TRANSPORTS;
   return [
-    { slug: curl.slug, label: curl.label, hl: curl.hl, path: t.curl, code: forReader(raw(t.curl)) },
+    { slug: curl.slug, label: curl.label, hl: curl.hl, path: t.curl, code: forReader(raw(t.curl)), ...('jq' in t && t.jq ? { jq: forReader(raw(t.jq)) } : {}) },
     t.capnp
       ? { slug: capnp.slug, label: capnp.label, hl: capnp.hl, path: t.capnp, code: forReader(raw(t.capnp)) }
       : { slug: capnp.slug, label: capnp.label, hl: capnp.hl, placeholder: "This route serves JSON only; there is no Cap'n Proto body." },

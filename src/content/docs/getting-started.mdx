@@ -6,6 +6,7 @@ description: "Make an anonymous forecast call, learn what the free tier includes
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 import Example from '../../components/Example.astro';
+import ExampleResponse from '../../components/ExampleResponse.astro';
 import LanguageNotesTabs from '../../components/LanguageNotesTabs.astro';
 import RateLimitTable from '../../components/RateLimitTable.astro';
 import TierTable from '../../components/TierTable.astro';
@@ -24,6 +25,8 @@ member.
    named location answer without credentials, at the Free tier:
 
    <Example task="quickstart" op="getLocationForecast" />
+
+   <ExampleResponse task="quickstart" />
 
 2. **Pick your language.** The tabs above switch every example on the site:
    curl, Cap'n Proto, or one of the official SDKs. Your choice is kept in the

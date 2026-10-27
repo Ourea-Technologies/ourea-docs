@@ -8,6 +8,7 @@ sdk: go
 
 import { Aside } from '@astrojs/starlight/components';
 import Example from '../../../components/Example.astro';
+import ExampleResponse from '../../../components/ExampleResponse.astro';
 import HttpExample from '../../../components/HttpExample.astro';
 import LanguageNotes from '../../../components/LanguageNotes.astro';
 import SdkExample from '../../../components/SdkExample.astro';
@@ -23,6 +24,8 @@ coordinates need Pro.
 Standard library only. Note the `*float64` for `probability`: it is `null` when the served series does not reach the window's end, which is not the same as 0.
 
 <HttpExample lang="go" />
+
+<ExampleResponse task="quickstart" open={false} />
 
 It prints each hour's temperature range and the chance of at least 6 in of
 snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form

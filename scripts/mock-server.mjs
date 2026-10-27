@@ -31,7 +31,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// The repository root: next to this script, or the working directory when
+// the site build bundles this module (src/lib/responses.mjs).
+const here = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = existsSync(join(here, 'spec/vectors')) ? here : process.cwd();
 const spec = YAML.parse(readFileSync(join(root, 'spec/openapi/v1/openapi.yaml'), 'utf8'));
 const vectorsDir = join(root, 'spec/vectors');
 const schemaPath = join(root, 'public/schema/v1/ourea.capnp');
@@ -158,7 +161,8 @@ const error = (status, code, message, extra = {}) => ({
 });
 const defaultOf = (schema) => (schema.default === undefined ? undefined : String(schema.default));
 
-const handle = (req) => {
+/** One response for `req` ({ url, headers }), exactly as the server below sends it. */
+export const handle = (req) => {
   const url = new URL(req.url, 'http://mock');
   const rawQuery = url.search.slice(1);
   const match = matchOperation(url.pathname);

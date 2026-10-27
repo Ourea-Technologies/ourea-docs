@@ -8,6 +8,8 @@
 import { FAQ } from '../data/faq';
 import { CAPNP_DECODERS, HTTP_EXAMPLES, raw, tabsFor, type Task } from './examples';
 import { SDKS } from './languages.mjs';
+import { annotatedResponse } from './responses.mjs';
+import { RESPONSE_NOTE } from './responses-text';
 import { languageNotes, rateLimitTable, tierTable, toMarkdown } from './tables';
 
 export const SITE = 'https://docs.oureawx.com';
@@ -19,7 +21,7 @@ const exampleMd = (task: Task) => {
   const tabs = tabsFor(task);
   const pending = tabs.filter((t) => !t.code).map((t) => t.label);
   return [
-    ...tabs.filter((t) => t.code).map((t) => `**${t.label}**\n\n${fence(t.code ?? '', t.hl)}`),
+    ...tabs.filter((t) => t.code).map((t) => `**${t.label}**\n\n${fence(t.code ?? '', t.hl)}${t.jq ? `\n\nReadable in a terminal, with jq:\n\n${fence(t.jq, 'bash')}` : ''}`),
     ...(pending.length ? [`SDK examples coming in each SDK's 0.1 release: ${pending.join(', ')}. The SDKs send the same canonical URL as the curl example.`] : []),
   ].join('\n\n');
 };
@@ -32,6 +34,10 @@ const sdkMd = (sdk: string, task: Task) => {
 
 const replacers: [RegExp, (a: Record<string, string>) => string][] = [
   [/<Example ([^>]*?)\/>/g, (a) => exampleMd(a.task as Task)],
+  [/<ExampleResponse ([^>]*?)\/>/g, (a) => {
+    const r = annotatedResponse(process.cwd(), a.task);
+    return `The response (${r.status} for \`${r.request}\`). ${RESPONSE_NOTE}\n\n${fence(r.code, 'jsonc')}`;
+  }],
   [/<HttpExample ([^>]*?)\/>/g, (a) => fence(raw(HTTP_EXAMPLES[a.lang].path), HTTP_EXAMPLES[a.lang].hl, HTTP_EXAMPLES[a.lang].path.split('/').pop())],
   [/<SdkExample ([^>]*?)\/>/g, (a) => sdkMd(a.sdk, a.task as Task)],
   [/<LanguageNotes ([^>]*?)\/>/g, (a) => toMarkdown(languageNotes(a.sdk))],

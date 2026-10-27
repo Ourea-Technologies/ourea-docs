@@ -27,3 +27,27 @@ table.ourea-tight td,
 table.ourea-tight th {
   padding: 0.35rem 0.6rem;
 }
+.ourea-example__jq {
+  font-size: var(--sl-text-sm);
+  margin-top: 0.75rem;
+}
+.ourea-response {
+  margin-top: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+.ourea-response > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.ourea-response__req {
+  font-weight: 400;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.ourea-response__note,
+.ourea-response__links {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
