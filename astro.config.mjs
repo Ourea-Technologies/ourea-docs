@@ -36,7 +36,9 @@ export default defineConfig({
       logo: { src: './src/assets/ourea-mark.svg', replacesTitle: false },
       favicon: '/favicon.svg',
       titleDelimiter: '·',
-      lastUpdated: false,
+      // From each page's last git commit: build from a full clone (CI fetches
+      // the whole history), or every page shows the newest commit's date.
+      lastUpdated: true,
       pagefind: true,
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Ourea-Technologies' }],
       customCss: ['./src/styles/custom.css'],

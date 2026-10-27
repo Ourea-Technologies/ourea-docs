@@ -100,6 +100,13 @@ curl "http://localhost:8800/__scheduled?cron=*/5+*+*+*+*"     # one probe
 npx wrangler dev -c wrangler.jsonc -c workers/status/wrangler.jsonc --persist-to workers/status/.wrangler/state
 ```
 
+## Page feedback
+
+Every page shows its last-updated date (from git: build from a full clone)
+and "Was this page helpful? Yes · No": each opens the page-feedback issue
+form (`.github/ISSUE_TEMPLATE/page_feedback.yml`) with the page and the
+answer filled in. There is no backend.
+
 ## Checks
 
 - `scripts/check-examples.mjs`: every referenced example exists, then runs

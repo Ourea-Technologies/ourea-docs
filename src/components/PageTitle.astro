@@ -2,63 +2,10 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026 Ourea Technologies
 //
-// Starlight's page title, plus the page actions: copy this page as
-// Markdown, view the Markdown alternate (/<page>.md), or open it in Claude
-// or ChatGPT with a prompt that points at that Markdown. Copy needs a
-// little script; the rest are plain links.
+// Starlight's page title, plus the page actions (PageActions.astro).
 import Default from '@astrojs/starlight/components/PageTitle.astro';
-import { pageActions } from '../lib/page-actions';
-
-const route = Astro.locals.starlightRoute;
-const show = route.id !== '404';
-const a = pageActions(route.id, route.entry.data.title);
+import PageActions from './PageActions.astro';
 ---
 
 <Default />
-{
-  show && (
-    <div class="ourea-actions" aria-label="Page actions">
-      <button type="button" data-copy-md={a.md}>Copy page as Markdown</button>
-      <a href={a.md}>View as Markdown</a>
-      <a href={a.claude} rel="noopener" target="_blank">Open in Claude</a>
-      <a href={a.chatgpt} rel="noopener" target="_blank">Open in ChatGPT</a>
-    </div>
-  )
-}
-
-<script>
-  document.addEventListener('click', async (event) => {
-    const button = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-copy-md]');
-    if (!button) return;
-    const label = button.textContent;
-    try {
-      const res = await fetch(button.dataset.copyMd!);
-      await navigator.clipboard.writeText(await res.text());
-      button.textContent = 'Copied';
-    } catch {
-      button.textContent = 'Copy failed';
-    }
-    setTimeout(() => (button.textContent = label), 1500);
-  });
-</script>
-
-<style>
-  .ourea-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    margin-top: 0.5rem;
-    font-size: var(--sl-text-sm);
-  }
-  .ourea-actions a,
-  .ourea-actions button {
-    all: unset;
-    cursor: pointer;
-    color: var(--sl-color-text-accent);
-    text-decoration: underline;
-  }
-  .ourea-actions a:focus-visible,
-  .ourea-actions button:focus-visible {
-    outline: 2px solid var(--sl-color-text-accent);
-  }
-</style>
+<PageActions />

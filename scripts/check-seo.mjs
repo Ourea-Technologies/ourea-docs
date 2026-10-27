@@ -14,7 +14,9 @@
 //     that type needs (a structural check of the schema.org vocabulary we use);
 //   * every internal link and asset (href/src) resolves to a built file, and
 //     every #fragment to an id on the target page;
-//   * every <img> has width and height (no layout shift).
+//   * every <img> has width and height (no layout shift);
+//   * every docs page has its page actions, the "was this page helpful"
+//     links and a last-updated date.
 //
 //   node scripts/check-seo.mjs [dist]
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -89,6 +91,13 @@ for (const f of htmlFiles) {
 
   if (isRedirect || noindex || is404) continue;
   indexable.push(urlOf(f));
+
+  // Docs pages (not the API reference): page actions, the helpful links and a last-updated date.
+  if (!f.startsWith('api/')) {
+    if (!/data-copy-md="\/[^"]*\.md"/.test(html)) fail(page, 'no page actions (Copy page as Markdown)');
+    if (!/Was this page helpful\?/.test(html)) fail(page, 'no "Was this page helpful?" links');
+    if (!/Last updated:/.test(html)) fail(page, 'no last-updated date');
+  }
 
   const title = decode(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '');
   if (!title) fail(page, 'no <title>');

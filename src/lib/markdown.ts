@@ -57,6 +57,7 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
       ...CHANGELOG.map((e) => `### ${e.date}: ${e.title}\n\n${e.body}`),
     ].join('\n\n')],
   [/<StatusBoard\s*\/>/g, () => `Live status (JSON): ${SITE}/status/data.json`],
+  [/<PageActions\s*\/>\n?/g, () => ''],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

@@ -21,3 +21,6 @@
 - name: needs-spec
   color: fbca04
   description: Needs an API or spec change (ensemble-weather-spec)
+- name: feedback
+  color: c5def5
+  description: A reader's "was this page helpful?" answer

@@ -2,20 +2,34 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026 Ourea Technologies
 //
-// Starlight's footer, plus a "found a problem?" link on every page that opens
-// the docs issue form with this page's URL filled in.
+// Starlight's footer (with the page's last-updated date from git), plus
+// "Was this page helpful?" and a "found a problem?" link on every page.
+// No backend: Yes opens the page-feedback issue form and No the docs-problem
+// form, each with this page's URL filled in.
 import Default from '@astrojs/starlight/components/Footer.astro';
 
 const page = new URL(Astro.url.pathname, Astro.site).href;
-const issue = new URL('https://github.com/Ourea-Technologies/ourea-docs/issues/new');
-issue.searchParams.set('template', 'docs.yml');
-issue.searchParams.set('title', `Docs: ${Astro.locals.starlightRoute.entry.data.title}`);
-issue.searchParams.set('page', page);
+const title = Astro.locals.starlightRoute.entry.data.title;
+const form = (template: string, fields: Record<string, string>) => {
+  const u = new URL('https://github.com/Ourea-Technologies/ourea-docs/issues/new');
+  u.searchParams.set('template', template);
+  for (const [k, v] of Object.entries(fields)) u.searchParams.set(k, v);
+  return u.href;
+};
+const yes = form('page_feedback.yml', { title: `Feedback: ${title} (helpful)`, page, helpful: 'yes' });
+const no = form('page_feedback.yml', { title: `Feedback: ${title} (not helpful)`, page, helpful: 'no' });
+const issue = form('docs.yml', { title: `Docs: ${title}`, page });
 ---
 
-<p class="ourea-feedback">
-  Found a problem with this page? <a href={issue.href}>Open an issue</a> · <a href="/community/">Contribute and get help</a> · <a href="/status/">API status</a>
-</p>
+<div class="ourea-feedback">
+  <p>
+    Was this page helpful? <a href={yes} rel="noopener">Yes</a> · <a href={no} rel="noopener">No</a>
+    <span class="ourea-feedback__hint">(opens a short GitHub form)</span>
+  </p>
+  <p>
+    Found a problem with this page? <a href={issue}>Open an issue</a> · <a href="/community/">Contribute and get help</a> · <a href="/status/">API status</a>
+  </p>
+</div>
 <Default />
 
 <style>
@@ -23,5 +37,11 @@ issue.searchParams.set('page', page);
     margin-top: 2.5rem;
     font-size: var(--sl-text-sm);
     color: var(--sl-color-gray-3);
+  }
+  .ourea-feedback p {
+    margin: 0.25rem 0;
+  }
+  .ourea-feedback__hint {
+    color: var(--sl-color-gray-4);
   }
 </style>
