@@ -1,0 +1,7 @@
+{
+  "$comment": "Site switches. postman.enabled shows the Run in Postman button (getting-started, the API reference) once a public Postman workspace exists; postman.url is that collection's public URL (https://www.postman.com/...). Off until then.",
+  "postman": {
+    "enabled": false,
+    "url": ""
+  }
+}

@@ -45,6 +45,15 @@ pointing at that Markdown. The API reference has one Markdown page per
 operation (`/api/<operationId>.md`, `src/lib/operation-md.mjs`), listed in
 `llms.txt` and appended to `llms-full.txt`.
 
+## API clients
+
+`/downloads/ourea-weather-api.bruno.zip` is a Bruno collection built from
+the served OpenAPI file (`src/lib/bruno.mjs`): one request per operation on
+the canonical URL of its tested curl sample. The Run in Postman button is
+behind `postman.enabled` in `src/data/site.json`, off until a public Postman
+workspace exists; set `postman.url` to the public collection URL and turn it
+on.
+
 ## Charts
 
 `<Chart kind="fan|plume|blend|coverage">` draws an SVG at build time

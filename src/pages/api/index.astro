@@ -15,6 +15,9 @@
 // the URL.
 import { ALIASES, ALL } from '../../lib/languages.mjs';
 import { scalarClientId } from '../../lib/code-samples.mjs';
+import site from '../../data/site.json';
+
+const postman = site.postman.enabled && /^https:\/\/(www\.)?postman\.com\//.test(site.postman.url) ? site.postman.url : null;
 const title = 'API reference · Ourea Docs';
 const description = 'The Ourea Weather API v1 reference: every route, parameter, response schema and error code, generated from the public OpenAPI spec.';
 const canonical = new URL('/api/', Astro.site).href;
@@ -94,6 +97,8 @@ const article = {
       <a href="/getting-started/">Getting started</a>
       <a href="/openapi/v1/openapi.yaml">OpenAPI (YAML)</a>
       <a href="/llms.txt">Markdown for agents (one page per operation)</a>
+      <a href="/downloads/ourea-weather-api.bruno.zip" download>Bruno collection</a>
+      {postman && <a href={postman} rel="noopener">Run in Postman</a>}
       <a href="https://oureawx.com">oureawx.com</a>
     </nav>
     <noscript><p>The interactive reference needs JavaScript. The contract itself is <a href="/openapi/v1/openapi.yaml">openapi.yaml</a>.</p></noscript>

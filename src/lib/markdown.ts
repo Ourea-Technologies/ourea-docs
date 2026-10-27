@@ -48,6 +48,7 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
   [/<CapnpDecoders\s*\/>/g, () => CAPNP_DECODERS.map((d) => `**${d.label}**\n\n${fence(raw(d.path), d.hl, d.path)}`).join('\n\n')],
   [/<RequestBuilder\s*\/>/g, () => '_The interactive builder is on the web page: https://docs.oureawx.com/request-builder/. The rules it follows are below._'],
   [/<Chart ([^>]*?)\/>/g, (a) => `_A chart on the web page${a.caption ? `: ${a.caption}` : ''}_`],
+  [/<ApiClients\s*\/>/g, () => `- [Download the Bruno collection](${SITE}/downloads/ourea-weather-api.bruno.zip): one request per operation, with the tested examples' canonical URLs. Open the unzipped folder in Bruno.\n- [openapi.yaml](${SITE}/openapi/v1/openapi.yaml) imports into any client that reads OpenAPI 3.1.`],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

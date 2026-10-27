@@ -1,0 +1,42 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// Every operation in an API client: the Bruno collection built from the
+// OpenAPI file, and Run in Postman once the public workspace exists
+// (src/data/site.json, off by default).
+import site from '../data/site.json';
+
+const postman = site.postman.enabled && /^https:\/\/(www\.)?postman\.com\//.test(site.postman.url) ? site.postman.url : null;
+---
+
+<div class="ourea-clients">
+  <a class="ourea-clients__button" href="/downloads/ourea-weather-api.bruno.zip" download>Download the Bruno collection</a>
+  {postman && <a class="ourea-clients__button" href={postman} rel="noopener">Run in Postman</a>}
+</div>
+<p class="ourea-clients__note">
+  One request per operation, with the canonical URLs of the tested examples. Unzip it and open the folder in <a href="https://www.usebruno.com">Bruno</a> (free, offline, no account), pick the Ourea environment, and send. Pro routes read <code>apiKey</code> from the environment.
+  You can also import <a href="/openapi/v1/openapi.yaml">openapi.yaml</a> into any client that reads OpenAPI 3.1.
+</p>
+
+<style>
+  .ourea-clients {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .ourea-clients__button {
+    display: inline-block;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--sl-color-accent);
+    color: var(--sl-color-text-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .ourea-clients__note {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>
