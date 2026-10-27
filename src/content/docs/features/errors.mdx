@@ -2,6 +2,8 @@
 title: "Errors"
 seoTitle: "Errors · codes, statuses and retries"
 description: "Every Ourea error is one JSON envelope with a machine-readable code. The codes, their HTTP statuses, and which ones to retry."
+tableOfContents:
+  maxHeadingLevel: 2
 sidebar:
   order: 12
 ---
@@ -12,11 +14,25 @@ Every error is one JSON body, whatever refused the request (and also when
 you asked for `format=capnp`):
 
 ```json
-{ "error": "LOCATION_NOT_FOUND", "message": "No location or/nowhere." }
+{
+  "error": "BAD_REQUEST",
+  "message": "unknown query parameter 'max_hour'; this route accepts: daily, elevations, exclude_sources, ...",
+  "param": "max_hour",
+  "request_id": "3f6c1a8e-2b7d-4c55-9a51-0d3b8e1f2a64",
+  "doc_url": "https://docs.oureawx.com/features/errors/#bad_request"
+}
 ```
 
-Switch on `error`, the machine-readable code; show or log `message`. If the
-response carries `X-Request-Id`, include it when you report a problem.
+- `error` is the machine-readable code: switch on it. Show or log `message`.
+- `request_id` is the same value as the response's `X-Request-Id` header.
+  **Quote it when you contact support**; it finds your request.
+- `doc_url` links to the code's section on this page: `#` and the code in
+  lower case. It depends on the code alone, never on the request.
+- `param`, on a `400` about one query parameter, names it (`max_hours`,
+  `lat`, `elevation_m`), so a client or form can point at it.
+- Some codes add a field: `nearest_location` on `PRO_REQUIRED`,
+  `candidates` on `AMBIGUOUS`, `attempts_remaining` on `INVALID_CODE`,
+  `enrolled` on `MFA_REQUIRED`.
 
 <Example task="errors" op="getLocationForecast" />
 
@@ -24,13 +40,16 @@ response carries `X-Request-Id`, include it when you report a problem.
 
 | Category | Codes | Status | Retry? |
 |---|---|---|---|
-| Authentication | `INVALID_API_KEY`, `UNAUTHORIZED` | 401 | No: fix the key, or send none |
-| Permission | `PRO_REQUIRED`, `FORBIDDEN` | 403 | No: drop the Pro option or use a Pro key |
-| Not found | `LOCATION_NOT_FOUND`, `MODEL_RUN_NOT_FOUND`, `NOT_FOUND`, `GONE` | 404, 410 | No |
-| Invalid request | `BAD_REQUEST`, `INVALID_COORDINATES`, `INVALID_ELEVATION`, `INVALID_MAX_HOURS`, `ELEVATION_REQUIRED`, `AMBIGUOUS`, `FEELS_LIKE_UNAVAILABLE` | 400 | No |
-| Outside coverage | `OUTSIDE_COVERAGE` | 404 | No |
-| Rate limited | `TOO_MANY_REQUESTS` | 429 | Yes, after `Retry-After` |
-| Unavailable | `FORECAST_UNAVAILABLE`, `TIMEOUT`, `INTERNAL_ERROR`, `DATABASE_ERROR` | 5xx | 502, 503 and 504 yes |
+| Authentication | [`INVALID_API_KEY`](#invalid_api_key), [`UNAUTHORIZED`](#unauthorized) | 401 | No: fix the key, or send none |
+| Permission | [`PRO_REQUIRED`](#pro_required), [`FORBIDDEN`](#forbidden) | 403 | No: drop the Pro option or use a Pro key |
+| Not found | [`LOCATION_NOT_FOUND`](#location_not_found), [`NOT_FOUND`](#not_found), [`GONE`](#gone) | 404, 410 | No |
+| Invalid request | [`BAD_REQUEST`](#bad_request), [`INVALID_COORDINATES`](#invalid_coordinates), [`INVALID_ELEVATION`](#invalid_elevation), [`ELEVATION_REQUIRED`](#elevation_required), [`AMBIGUOUS`](#ambiguous) | 400, 409 | No |
+| Outside coverage | [`OUTSIDE_COVERAGE`](#outside_coverage) | 404 | No |
+| Rate limited | [`TOO_MANY_REQUESTS`](#too_many_requests) | 429 | Yes, after `Retry-After` |
+| Unavailable | [`FORECAST_UNAVAILABLE`](#forecast_unavailable), [`AUTH_UNAVAILABLE`](#auth_unavailable), [`TIMEOUT`](#timeout), [`INTERNAL_ERROR`](#internal_error), [`DATABASE_ERROR`](#database_error) | 5xx | 502, 503 and 504 yes |
+
+The sign-in, account, API key, billing and app routes have codes of their
+own, listed under [Account and app codes](#account-and-app-codes).
 
 - **Unknown parameters are refused**, never ignored: `max_hour=48` is a
   `400` that names the parameter and lists the route's parameters, so a typo
@@ -41,8 +60,7 @@ response carries `X-Request-Id`, include it when you report a problem.
   horizon are clamped and reported in `applied`.
 - **Errors are never cached**: every 4xx and 5xx carries
   `Cache-Control: no-store`.
-- `TIMEOUT` (504) means the request did not finish within the server's 30 s
-  deadline; retry it.
+- **Every `503` and `504` says when to retry**: `Retry-After` is always set.
 
 ## Retries
 
@@ -56,6 +74,365 @@ routes are GET, so retrying is safe. The SDKs do it for you (up to 2 retries):
 
 If `502`, `503` or `504` keep coming back, the [API status](/status/) page
 shows whether anonymous requests are failing too.
+
+## Forecast API codes
+
+The codes the public forecast, location and observation routes send.
+
+### BAD_REQUEST
+
+**400.** The request is malformed: a query value of the wrong type
+(`max_hours=abc`), a bad path segment, a query parameter the route does not
+know (`max_hour=48`; the message names it and lists the route's parameters),
+or a combination the route refuses (`hourly=false&daily=false`: nothing to
+serve).
+
+**Do:** fix the parameter named in `param` (and in `message`), then resend.
+Do not retry unchanged. If you think the request is valid, quote its
+`request_id` to support.
+
+### INVALID_COORDINATES
+
+**400.** `lat` or `lon` is missing, not a number, or out of range (`lat` in
+[-90, 90], `lon` in [-180, 180]). `param` names the coordinate.
+
+**Do:** send a valid decimal-degree coordinate. Do not retry unchanged.
+Quote `request_id` to support if the coordinate looks right to you.
+
+### INVALID_ELEVATION
+
+**400.** `elevation_m` is not a finite number in [-500, 9000] metres.
+`param` is `elevation_m`.
+
+**Do:** send metres above sea level in that range, or leave `elevation_m`
+out to use the terrain elevation. Quote `request_id` to support if needed.
+
+### ELEVATION_REQUIRED
+
+**400.** No `elevation_m` was given and no terrain elevation is available at
+the point (water, a gap in the elevation data). An elevation is never
+guessed. `param` is `elevation_m`.
+
+**Do:** resend with `elevation_m` (metres above sea level). Quote
+`request_id` to support if you think the point should have terrain data.
+
+### OUTSIDE_COVERAGE
+
+**404.** The point is outside the forecast coverage window, or over no US
+state (offshore). The message states the window.
+
+**Do:** ask for a point inside the coverage. Do not retry. Quote
+`request_id` to support if the point is inside it.
+
+### LOCATION_NOT_FOUND
+
+**404.** The location in the path does not resolve: `Location '<name>' not
+found`.
+
+**Do:** check the state and slug; [search](/features/places/) finds a
+location's slug. Do not retry. Quote `request_id` to support if the
+location used to work.
+
+### NOT_FOUND
+
+**404.** No route matches the path (`No route for /api/v1/...`), or the
+thing the route names does not exist; the message names it.
+
+**Do:** check the path against the [API reference](/api/). Do not retry.
+Quote `request_id` to support if the URL came from Ourea.
+
+### PRO_REQUIRED
+
+**403.** A Pro-only option (`models=true`, a pinned `run`, or a forecast by
+coordinates) asked for by a caller whose tier is not Pro. Anonymous callers
+are Free. On a coordinate route the body's `nearest_location`, when present,
+is the named location to call instead, without a key.
+
+**Do:** drop the option for the Free forecast, call `nearest_location.url`,
+or [upgrade](/features/auth-and-tiers/) and send a Pro key. Quote
+`request_id` to support if your key is Pro.
+
+### INVALID_API_KEY
+
+**401.** The request sent an `X-API-Key` that is not a valid, active key:
+unknown, revoked, or owned by an account that is suspended or not yet
+verified. The key is refused rather than served as anonymous Free, so a
+mistyped or rotated key fails loudly.
+
+**Do:** check the key, or send no key at all for anonymous Free access. Do
+not retry unchanged. Quote `request_id` (never the key) to support.
+
+### UNAUTHORIZED
+
+**401.** Missing or invalid credentials. On a route that takes an API key
+the message is `Invalid or missing API key`. On a signed-in route it is
+`Sign in required` (no session sent) or `Session expired; sign in again`. A
+`Bearer` session token that resolves to no live session is also
+`UNAUTHORIZED`.
+
+**Do:** send a valid key, or sign in again. Do not retry unchanged. Quote
+`request_id` to support.
+
+### TOO_MANY_REQUESTS
+
+**429.** A rate limit refused the request. `message` names the limit: the
+burst budget (requests faster than the sustained rate refills), the UTC
+day's quota (resets 00:00 UTC), the hourly budget that caps list paging and
+search depth, or the scrape throttle (too many distinct locations in an
+hour, or walking the catalog in order, slows a caller to a few requests a
+minute for an hour; never a ban). See [rate limits](/features/rate-limits/).
+
+**Do:** wait `Retry-After` seconds, then retry. Quote `request_id` to
+support if you think the limit is wrong.
+
+### FORECAST_UNAVAILABLE
+
+**503.** No servable forecast covers the request: no cycle is ready for the
+point, or no forecast hour has a complete set of core variables. The server
+says so rather than returning an empty forecast.
+
+**Do:** retry after `Retry-After` (60 s): the next cycle is due. If it
+persists, check the [API status](/status/) page and quote `request_id` to
+support.
+
+### AUTH_UNAVAILABLE
+
+**503.** `Your credential could not be checked just now; retry shortly`
+(the server is busy). It is answered at once rather than queued; the check
+carries on, so a retry is normally served. `Retry-After: 1`.
+
+**Do:** retry after `Retry-After`. If it persists, quote `request_id` to
+support.
+
+### TIMEOUT
+
+**504.** The request did not complete within the server's 30 s deadline.
+
+**Do:** retry after `Retry-After` (5 s). If it keeps timing out, quote
+`request_id` to support.
+
+### INTERNAL_ERROR
+
+**500.** `An internal error occurred`: an unexpected failure on the server.
+The detail is logged, never sent.
+
+**Do:** do not retry in a loop. Report it with the `request_id`; that is how
+the log entry is found.
+
+### DATABASE_ERROR
+
+**500.** `Database error occurred`: the server's database failed the
+request. The detail is logged, never sent.
+
+**Do:** do not retry in a loop. Report it with the `request_id`.
+
+## Account and app codes
+
+The codes the sign-in, account, API key, billing and app routes send, and
+two codes no current route sends but clients should still recognise.
+
+### FORBIDDEN
+
+**403.** The credential is valid but may not do this. The message is
+`Insufficient permissions for this endpoint`, or names the rule that refused.
+
+**Do:** use an account or key that has the permission. Do not retry. Quote
+`request_id` to support.
+
+### AMBIGUOUS
+
+**409.** A name matches more than one thing (a resort, a lift). It is
+refused, never guessed; `candidates` lists the matches.
+
+**Do:** resend with one candidate's slug, exact name or id. Quote
+`request_id` to support if needed.
+
+### CONFLICT
+
+**409.** The request conflicts with the current state; the message says
+how (for example, Founding Member slots are sold out).
+
+**Do:** read the message and change the request. Do not retry unchanged.
+Quote `request_id` to support.
+
+### GONE
+
+**410.** The link or token is no longer valid: unknown, already used, or
+expired (a confirmation link, or a two-factor challenge past its 5 minutes
+or five wrong attempts).
+
+**Do:** start again: sign in again for a fresh challenge, or ask for a new
+link. Quote `request_id` to support.
+
+### CAPTCHA_FAILED
+
+**403.** `Bot check failed. Complete the challenge and try again.` The bot
+check on register, sign-in or password reset was missing or did not verify.
+
+**Do:** reset the challenge widget and submit again. Quote `request_id` to
+support if it keeps failing.
+
+### APP_ATTEST_UNAVAILABLE
+
+**503.** `App Attest is not enabled on this server`.
+
+**Do:** retrying does not help until it is enabled. Quote `request_id` to
+support.
+
+### APP_ATTEST_REJECTED
+
+**400.** `The attestation did not verify. Generate a new key and attest
+again.` The reason is logged, never sent.
+
+**Do:** generate a new key and attest again. Quote `request_id` to support.
+
+### MFA_REQUIRED
+
+**403.** The session has not passed two-factor authentication. `enrolled`
+says why: `true`, `This session has not passed MFA; sign in again`;
+`false`, the account must enrol an authenticator app first.
+
+**Do:** sign in again and complete the two-factor challenge, or enrol when
+`enrolled` is `false`. Quote `request_id` to support.
+
+### INVALID_CODE
+
+**400.** `invalid code`: a two-factor or recovery code did not verify. One
+code for a wrong factor everywhere. On the sign-in challenge
+`attempts_remaining` counts down; the challenge is spent at 0.
+
+**Do:** enter a fresh code from the authenticator app. When
+`attempts_remaining` reaches 0, sign in again. Quote `request_id` to
+support.
+
+### MFA_CODE_REQUIRED
+
+**403.** Creating an API key on an account with two-factor authentication
+needs the authenticator code (body field `mfa_code`); a password does not
+stand in for it.
+
+**Do:** resend with `mfa_code`. Quote `request_id` to support.
+
+### REAUTH_REQUIRED
+
+**403.** Creating an API key needs your password again (body field
+`password`) unless you signed in within the last 10 minutes, or the
+password was wrong.
+
+**Do:** resend with the correct `password`, or sign in again. Quote
+`request_id` to support.
+
+### API_KEY_LIMIT_REACHED
+
+**409.** The account already holds its tier's maximum of active API keys.
+
+**Do:** revoke a key, then create the new one. Quote `request_id` to
+support.
+
+### MFA_ENROLLMENT_UNAVAILABLE
+
+**503.** Two-factor enrolment is not available yet: no client can complete
+a two-factor challenge yet, so enrolling now would lock you out. It will be
+enabled when client support ships.
+
+**Do:** nothing to fix; retrying does not help until it is enabled. Quote
+`request_id` to support.
+
+### MFA_NOT_CONFIGURED
+
+**503.** Two-factor authentication is not configured on this server.
+
+**Do:** retrying does not help until it is configured. Quote `request_id` to
+support.
+
+### INVALID_TRANSITION
+
+**409.** The account's status cannot change that way from its current
+status.
+
+**Do:** reload the account and check its status. Quote `request_id` to
+support.
+
+### EDIT_CONFLICT
+
+**409.** `This location changed since you loaded it; review the current
+version and save again`. Another editor saved first; `current` is the
+record as it stands now.
+
+**Do:** reconcile your change with `current` and save again. Quote
+`request_id` to support.
+
+### REFUND_AUDIT_FAILED
+
+**500.** A refund was issued but its record could not be written. The
+message names the refund.
+
+**Do:** **do not retry**: a retry would refund twice. Record the refund by
+hand, quoting the `request_id`.
+
+### EDUCATION_NOT_CONFIGURED
+
+**503.** `The education plan is not configured on this server`.
+
+**Do:** retrying does not help until it is configured. Quote `request_id` to
+support.
+
+### TERMS_NOT_ACCEPTED
+
+**400.** The academic terms must be accepted (`accept_terms: true`).
+
+**Do:** accept the terms and resend. Quote `request_id` to support.
+
+### STALE_TERMS_VERSION
+
+**400.** `terms_version` is not the current version of the academic terms.
+
+**Do:** reload the terms, accept the current version and resend. Quote
+`request_id` to support.
+
+### NOT_ACADEMIC_DOMAIN
+
+**422.** The address is not on a recognised academic domain.
+
+**Do:** use your institution's address, or contact support to be verified
+by hand, quoting `request_id`.
+
+### ACADEMIC_EMAIL_IN_USE
+
+**409.** That academic address already backs another Ourea account.
+
+**Do:** use another academic address. Quote `request_id` to support.
+
+### ALREADY_SUBSCRIBED
+
+**409.** The account already has a paid Pro plan (or a founding grant).
+
+**Do:** cancel it first, then request Education Pro. Quote `request_id` to
+support.
+
+### EDUCATION_ACTIVE
+
+**409.** The account has Education Pro. On an Education Pro request,
+renewal opens 30 days before it ends; on a paid plan checkout, Education Pro
+already includes Pro.
+
+**Do:** wait for the renewal window, or end Education Pro before buying a
+paid plan. Quote `request_id` to support.
+
+### INVALID_MAX_HOURS
+
+**400.** `max_hours must be between 6 and 360, got <n>`. `param` is
+`max_hours`. No current route sends it: `max_hours` over the horizon is
+clamped, and a malformed value is `BAD_REQUEST`.
+
+**Do:** send `max_hours` in that range. Quote `request_id` to support.
+
+### MODEL_RUN_NOT_FOUND
+
+**404.** `Model run '<id>' not found`. No current route sends it.
+
+**Do:** ask for a run that exists, or leave the run out for the latest.
+Quote `request_id` to support.
 
 ## Reference
 
