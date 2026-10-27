@@ -1,0 +1,259 @@
+{
+  "$comment": "Every example the docs show, by task. curl and capnp are files in this repo; sdk lists the example names looked for in each SDK repo's examples/ (normalized: case, '_' and '-' ignored). scripts/check-examples.mjs verifies this file.",
+  "tasks": {
+    "quickstart": {
+      "title": "Quickstart: an anonymous forecast, no signup.",
+      "page": "/getting-started/",
+      "pro": false,
+      "curl": "examples/curl/quickstart.sh",
+      "capnp": "examples/capnp/cli/quickstart.sh",
+      "sdk": [
+        "quickstart"
+      ]
+    },
+    "forecast-by-location": {
+      "title": "Forecast for a named location (state + slug).",
+      "page": "/features/places/",
+      "pro": false,
+      "curl": "examples/curl/forecast-by-location.sh",
+      "capnp": "examples/capnp/cli/forecast-by-location.sh",
+      "sdk": [
+        "forecast_by_location",
+        "location_forecast",
+        "named_location"
+      ]
+    },
+    "point-forecast": {
+      "title": "Forecast at coordinates (Pro).",
+      "page": "/features/places/",
+      "pro": true,
+      "curl": "examples/curl/point-forecast.sh",
+      "capnp": "examples/capnp/cli/point-forecast.sh",
+      "sdk": [
+        "point_forecast"
+      ]
+    },
+    "search": {
+      "title": "Search the catalog by name, optionally filtered by type.",
+      "page": "/features/places/",
+      "pro": false,
+      "curl": "examples/curl/search.sh",
+      "capnp": "examples/capnp/cli/search.sh",
+      "sdk": [
+        "search",
+        "search_and_catalog"
+      ]
+    },
+    "nearby": {
+      "title": "Nearest locations, to a location or to a coordinate.",
+      "page": "/features/places/",
+      "pro": false,
+      "curl": "examples/curl/nearby.sh",
+      "capnp": "examples/capnp/cli/nearby.sh",
+      "sdk": [
+        "nearby",
+        "nearby_locations"
+      ]
+    },
+    "list-locations": {
+      "title": "List a state's locations, one page at a time.",
+      "page": "/features/location-info/",
+      "pro": false,
+      "curl": "examples/curl/list-locations.sh",
+      "capnp": "examples/capnp/cli/list-locations.sh",
+      "sdk": [
+        "list_locations",
+        "paging",
+        "search_and_catalog"
+      ]
+    },
+    "catalog-detail": {
+      "title": "Location info from the catalog (beta).",
+      "page": "/features/location-info/",
+      "pro": false,
+      "curl": "examples/curl/catalog-detail.sh",
+      "capnp": "examples/capnp/cli/catalog-detail.sh",
+      "sdk": [
+        "catalog_detail",
+        "catalog",
+        "location_info"
+      ]
+    },
+    "elevations": {
+      "title": "Forecasts at every named elevation of a ski area.",
+      "page": "/features/location-info/",
+      "pro": false,
+      "curl": "examples/curl/elevations.sh",
+      "capnp": "examples/capnp/cli/elevations.sh",
+      "sdk": [
+        "elevations",
+        "elevation_forecasts"
+      ]
+    },
+    "daily-only": {
+      "title": "Daily summaries only: the cheap request for daily views.",
+      "page": "/features/variables/",
+      "pro": false,
+      "curl": "examples/curl/daily-only.sh",
+      "capnp": "examples/capnp/cli/daily-only.sh",
+      "sdk": [
+        "daily",
+        "daily_only",
+        "variables"
+      ]
+    },
+    "chance-of-snow": {
+      "title": "Probabilities: several prob terms in one request.",
+      "page": "/features/probabilities/",
+      "pro": false,
+      "curl": "examples/curl/chance-of-snow.sh",
+      "capnp": "examples/capnp/cli/chance-of-snow.sh",
+      "sdk": [
+        "chance_of_snow"
+      ]
+    },
+    "storm-total": {
+      "title": "Window totals: the storm-total range from the server.",
+      "page": "/features/window-totals/",
+      "pro": false,
+      "curl": "examples/curl/storm-total.sh",
+      "capnp": "examples/capnp/cli/storm-total.sh",
+      "sdk": [
+        "storm_total"
+      ]
+    },
+    "plume": {
+      "title": "Plumes: every ensemble member, every hour.",
+      "page": "/features/plumes/",
+      "pro": false,
+      "curl": "examples/curl/plume.sh",
+      "capnp": "examples/capnp/cli/plume.sh",
+      "sdk": [
+        "plume",
+        "plumes",
+        "members"
+      ]
+    },
+    "models": {
+      "title": "Per-model breakdowns, available runs and a pinned run (Pro).",
+      "page": "/features/models/",
+      "pro": true,
+      "curl": "examples/curl/models.sh",
+      "capnp": "examples/capnp/cli/models.sh",
+      "sdk": [
+        "models",
+        "per_model",
+        "model_comparison"
+      ]
+    },
+    "nowcast": {
+      "title": "The base forecast plus the live nowcast overlay.",
+      "page": "/features/nowcast/",
+      "pro": false,
+      "curl": "examples/curl/nowcast.sh",
+      "capnp": "examples/capnp/cli/nowcast.sh",
+      "sdk": [
+        "nowcast"
+      ]
+    },
+    "current-and-alerts": {
+      "title": "Current conditions and active NWS alerts for a location.",
+      "page": "/features/current-and-alerts/",
+      "pro": false,
+      "curl": "examples/curl/current-and-alerts.sh",
+      "capnp": "examples/capnp/cli/current-and-alerts.sh",
+      "sdk": [
+        "current_and_alerts"
+      ]
+    },
+    "current-and-alerts-coordinates": {
+      "title": "Current conditions and alerts at coordinates (Pro).",
+      "page": "/features/current-and-alerts/",
+      "pro": true,
+      "curl": "examples/curl/current-and-alerts-coordinates.sh",
+      "capnp": "examples/capnp/cli/current-and-alerts-coordinates.sh",
+      "sdk": [
+        "current_and_alerts_coordinates",
+        "current_by_coordinates"
+      ]
+    },
+    "storm-reports": {
+      "title": "Storm report cards: forecast vs observed totals for completed events.",
+      "page": "/features/current-and-alerts/",
+      "pro": false,
+      "curl": "examples/curl/storm-reports.sh",
+      "capnp": "examples/capnp/cli/storm-reports.sh",
+      "sdk": [
+        "storm_reports"
+      ]
+    },
+    "units": {
+      "title": "The same forecast in imperial and in kelvin units.",
+      "page": "/features/units/",
+      "pro": false,
+      "curl": "examples/curl/units.sh",
+      "capnp": "examples/capnp/cli/units.sh",
+      "sdk": [
+        "units"
+      ]
+    },
+    "horizon": {
+      "title": "Choosing the horizon: max_hours, max_days and include_past.",
+      "page": "/features/horizon/",
+      "pro": false,
+      "curl": "examples/curl/horizon.sh",
+      "capnp": "examples/capnp/cli/horizon.sh",
+      "sdk": [
+        "horizon",
+        "max_hours"
+      ]
+    },
+    "errors": {
+      "title": "Errors: one JSON envelope with a machine-readable code.",
+      "page": "/features/errors/",
+      "pro": false,
+      "curl": "examples/curl/errors.sh",
+      "capnp": "examples/capnp/cli/errors.sh",
+      "sdk": [
+        "error_handling",
+        "errors"
+      ]
+    },
+    "rate-limits": {
+      "title": "Reading your rate-limit state from the response headers.",
+      "page": "/features/rate-limits/",
+      "pro": true,
+      "curl": "examples/curl/rate-limits.sh",
+      "capnp": "examples/capnp/cli/rate-limits.sh",
+      "sdk": [
+        "rate_limits",
+        "error_handling"
+      ]
+    },
+    "etag": {
+      "title": "ETag revalidation: a 304 instead of the body when nothing changed.",
+      "page": "/features/caching/",
+      "pro": false,
+      "curl": "examples/curl/etag.sh",
+      "capnp": "examples/capnp/cli/etag.sh",
+      "sdk": [
+        "etag",
+        "caching",
+        "etag_polling",
+        "cache"
+      ]
+    },
+    "api-key": {
+      "title": "Sending an API key, and what an invalid key returns.",
+      "page": "/features/auth-and-tiers/",
+      "pro": true,
+      "curl": "examples/curl/api-key.sh",
+      "capnp": "examples/capnp/cli/api-key.sh",
+      "sdk": [
+        "api_key",
+        "auth",
+        "authentication"
+      ]
+    }
+  }
+}

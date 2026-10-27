@@ -1,0 +1,22 @@
+{
+  "location": {
+    "slug": "mt-hood-meadows",
+    "state": "or",
+    "name": "Mt. Hood Meadows",
+    "lat": 45.3311,
+    "lon": -121.6649,
+    "elevation_m": 1661.0,
+    "type": "ski_area",
+    "timezone": "America/Los_Angeles"
+  },
+  "alert_count": 0,
+  "as_of": "2026-11-15T00:00:00Z",
+  "alerts": [],
+  "attribution": {
+    "sources": [
+      "snotel"
+    ],
+    "credit": "NRCS SNOTEL data (public domain)",
+    "url": "/api/v1/attribution"
+  }
+}

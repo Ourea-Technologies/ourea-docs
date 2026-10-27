@@ -1,0 +1,54 @@
+{
+  "$comment": "The ref each SDK's examples are synced from (scripts/sync-examples.mjs). null = nothing committed to pin yet, so that SDK's tabs show a placeholder. Use a release tag once the SDK is released.",
+  "sdks": {
+    "python": {
+      "name": "ensemble-weather-python",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-python",
+      "local": "../ensemble-weather-python",
+      "ext": ".py",
+      "ref": "03b5ed16a66d"
+    },
+    "typescript": {
+      "name": "ensemble-weather-typescript",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-typescript",
+      "local": "../ensemble-weather-typescript",
+      "ext": ".ts",
+      "ref": "82a204697c6d"
+    },
+    "go": {
+      "name": "ensemble-weather-go",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-go",
+      "local": "../ensemble-weather-go",
+      "ext": ".go",
+      "ref": "fd63d0b4df41"
+    },
+    "dotnet": {
+      "name": "ensemble-weather-dotnet",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-dotnet",
+      "local": "../ensemble-weather-dotnet",
+      "ext": ".cs",
+      "ref": "1017e37e6417"
+    },
+    "java": {
+      "name": "ensemble-weather-java",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-java",
+      "local": "../ensemble-weather-java",
+      "ext": ".java",
+      "ref": null
+    },
+    "kotlin": {
+      "name": "ensemble-weather-kotlin",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-kotlin",
+      "local": "../ensemble-weather-kotlin",
+      "ext": ".kt",
+      "ref": null
+    },
+    "swift": {
+      "name": "ensemble-weather-swift",
+      "repo": "https://github.com/Ourea-Technologies/ensemble-weather-swift",
+      "local": "../ensemble-weather-swift",
+      "ext": ".swift",
+      "ref": "eb86e27a39ee"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "location": {
+    "slug": "mt-hood-meadows",
+    "state": "or",
+    "name": "Mt. Hood Meadows",
+    "lat": 45.3311,
+    "lon": -121.6649,
+    "elevation_m": 1661.0,
+    "type": "ski_area",
+    "timezone": "America/Los_Angeles"
+  },
+  "alerts": [],
+  "alerts_as_of": "2026-11-15T00:00:00Z",
+  "sensor_count": 1,
+  "sensors": [
+    {
+      "station_id": "651:OR:SNTL",
+      "name": "Mt Hood Test Site",
+      "source": "snotel",
+      "observation_time": "2026-11-15T00:00:00Z",
+      "temperature": -2.4,
+      "snow_depth": 61.0,
+      "swe": 180.3
+    }
+  ],
+  "as_of": "2026-11-15T00:05:00Z",
+  "model_run_initialized_at": "2026-11-15T00:00:00Z",
+  "nowcast_hours": null,
+  "current": {
+    "time": "2026-11-15T00:00:00Z",
+    "temperature": -2.1,
+    "condition": "snow",
+    "condition_text": "Snow",
+    "condition_icon": "night_snow",
+    "wind_speed": 4.2,
+    "wind_direction": 250,
+    "source": "nowcast"
+  },
+  "units": "metric",
+  "attribution": {
+    "sources": [
+      "snotel"
+    ],
+    "credit": "NRCS SNOTEL data (public domain)",
+    "url": "/api/v1/attribution"
+  }
+}

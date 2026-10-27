@@ -1,0 +1,8 @@
+{
+  "$comment": "Written by scripts/sync-schema.mjs. The published schema is the Ourea server schema with maintainer-only comments removed; node_digest is the sha256 of its compiled schema nodes, identical for both files.",
+  "server_commit": "9b269803ec2d",
+  "source_sha256": "32b8c082a372be3b16b776cae9ceede0ba2d98f4679e65d1187ea1f9a6846a06",
+  "published_sha256": "2d45d5dcd447a8b40f4895f3035d89c964f9fd27d83048dd671b0266c1c96874",
+  "node_digest": "6efb39d789d3f4f6e35a50128c3473296a6061ca0bc379cd3f1cf00d890e1a7b",
+  "nodes": 194
+}

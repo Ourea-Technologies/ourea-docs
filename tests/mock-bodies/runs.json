@@ -1,0 +1,17 @@
+{
+  "served": {
+    "initialized_at": "2026-11-15T00:00:00Z",
+    "models": [
+      {
+        "id": "gefs",
+        "cycle": "2026-11-15T00:00:00Z"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "initialized_at": "2026-11-15T00:00:00Z"
+    }
+  ],
+  "count": 1
+}

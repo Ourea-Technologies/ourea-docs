@@ -1,0 +1,7 @@
+location: Mt Hood Meadows (mt-hood-meadows, or) America/Los_Angeles
+initialized_at: 2026-05-04T12:00:00Z
+members: 87
+units: metric
+first_hour: 2026-05-04T13:00:00Z temperature p10=44.0 p50=48.0 p90=52.0
+hours: 1
+probabilities: 0

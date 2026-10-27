@@ -1,0 +1,97 @@
+{
+  "python": {
+    "ref": "03b5ed16a66d",
+    "commit": "03b5ed16a66d6b20b32338ed46899dcedbb3eaee",
+    "runtime": "Python >=3.10",
+    "tasks": {
+      "quickstart": "examples/sdk/python/quickstart.py",
+      "point-forecast": "examples/sdk/python/point_forecast.py",
+      "search": "examples/sdk/python/search_and_catalog.py",
+      "list-locations": "examples/sdk/python/search_and_catalog.py",
+      "chance-of-snow": "examples/sdk/python/chance_of_snow.py",
+      "storm-total": "examples/sdk/python/storm_total.py",
+      "current-and-alerts": "examples/sdk/python/current_and_alerts.py",
+      "units": "examples/sdk/python/units.py",
+      "errors": "examples/sdk/python/error_handling.py",
+      "rate-limits": "examples/sdk/python/error_handling.py"
+    }
+  },
+  "typescript": {
+    "ref": "82a204697c6d",
+    "commit": "82a204697c6d3826edbf7b891ed5637c128684bf",
+    "runtime": "Node.js >=18",
+    "tasks": {
+      "quickstart": "examples/sdk/typescript/quickstart.ts",
+      "point-forecast": "examples/sdk/typescript/point-forecast.ts",
+      "search": "examples/sdk/typescript/search-and-catalog.ts",
+      "list-locations": "examples/sdk/typescript/search-and-catalog.ts",
+      "chance-of-snow": "examples/sdk/typescript/chance-of-snow.ts",
+      "storm-total": "examples/sdk/typescript/storm-total.ts",
+      "current-and-alerts": "examples/sdk/typescript/current-and-alerts.ts",
+      "units": "examples/sdk/typescript/units.ts",
+      "errors": "examples/sdk/typescript/error-handling.ts",
+      "rate-limits": "examples/sdk/typescript/error-handling.ts"
+    }
+  },
+  "go": {
+    "ref": "fd63d0b4df41",
+    "commit": "fd63d0b4df41f6c0c5dfabf709154c1047c15d93",
+    "runtime": "Go 1.22+",
+    "tasks": {
+      "quickstart": "examples/sdk/go/quickstart/main.go",
+      "point-forecast": "examples/sdk/go/point-forecast/main.go",
+      "search": "examples/sdk/go/search-and-catalog/main.go",
+      "list-locations": "examples/sdk/go/search-and-catalog/main.go",
+      "chance-of-snow": "examples/sdk/go/chance-of-snow/main.go",
+      "storm-total": "examples/sdk/go/storm-total/main.go",
+      "current-and-alerts": "examples/sdk/go/current-and-alerts/main.go",
+      "units": "examples/sdk/go/units/main.go",
+      "errors": "examples/sdk/go/error-handling/main.go",
+      "rate-limits": "examples/sdk/go/error-handling/main.go"
+    }
+  },
+  "dotnet": {
+    "ref": "1017e37e6417",
+    "commit": "1017e37e641711d847a4cb07680be0580386c75a",
+    "runtime": "net8.0, netstandard2.0",
+    "tasks": {
+      "quickstart": "examples/sdk/dotnet/Quickstart/Program.cs",
+      "point-forecast": "examples/sdk/dotnet/PointForecast/Program.cs",
+      "search": "examples/sdk/dotnet/SearchAndCatalog/Program.cs",
+      "list-locations": "examples/sdk/dotnet/SearchAndCatalog/Program.cs",
+      "chance-of-snow": "examples/sdk/dotnet/ChanceOfSnow/Program.cs",
+      "storm-total": "examples/sdk/dotnet/StormTotal/Program.cs",
+      "current-and-alerts": "examples/sdk/dotnet/CurrentAndAlerts/Program.cs",
+      "units": "examples/sdk/dotnet/Units/Program.cs",
+      "errors": "examples/sdk/dotnet/ErrorHandling/Program.cs",
+      "rate-limits": "examples/sdk/dotnet/ErrorHandling/Program.cs"
+    }
+  },
+  "java": {
+    "ref": null,
+    "runtime": null,
+    "tasks": {}
+  },
+  "kotlin": {
+    "ref": null,
+    "runtime": null,
+    "tasks": {}
+  },
+  "swift": {
+    "ref": "eb86e27a39ee",
+    "commit": "eb86e27a39eec1a25fff225ba2f5a217dab39ceb",
+    "runtime": "Swift 6.0 (iOS 15, macOS 12, tvOS 15, watchOS 8)",
+    "tasks": {
+      "quickstart": "examples/sdk/swift/Sources/Quickstart/main.swift",
+      "point-forecast": "examples/sdk/swift/Sources/PointForecast/main.swift",
+      "search": "examples/sdk/swift/Sources/SearchAndCatalog/main.swift",
+      "list-locations": "examples/sdk/swift/Sources/SearchAndCatalog/main.swift",
+      "chance-of-snow": "examples/sdk/swift/Sources/ChanceOfSnow/main.swift",
+      "storm-total": "examples/sdk/swift/Sources/StormTotal/main.swift",
+      "current-and-alerts": "examples/sdk/swift/Sources/CurrentAndAlerts/main.swift",
+      "units": "examples/sdk/swift/Sources/Units/main.swift",
+      "errors": "examples/sdk/swift/Sources/ErrorHandling/main.swift",
+      "rate-limits": "examples/sdk/swift/Sources/ErrorHandling/main.swift"
+    }
+  }
+}
