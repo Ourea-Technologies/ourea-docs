@@ -9,6 +9,7 @@ import manifest from '../../examples/manifest.json';
 import sdkIndex from '../../examples/sdk/index.json';
 import refs from '../../examples/sdk-refs.json';
 import { SDKS, TRANSPORTS } from './languages.mjs';
+import { forReader } from './reader.mjs';
 
 const files = import.meta.glob(['/examples/**/*.{sh,py,ts,js,mjs,go,cs,java,kt,kts,swift,rs,c++,toml,in,txt}', '!**/build/**', '!**/bin/**', '!**/obj/**', '!**/.gradle/**', '!**/.kotlin/**'], {
   query: '?raw',
@@ -34,49 +35,15 @@ export const raw = (path: string): string => {
   return text;
 };
 
-/**
- * What a reader copies from a shell example: the runnable script minus the
- * test plumbing. Drops the shebang, licence and "Docs:/Runs against/expect"
- * header lines, `set -euo pipefail`, the API= base-URL line and any
- * `docs:hide-start..end` block, and writes the real host and schema name in
- * place of $API and $SCHEMA.
- */
-export const forReader = (script: string): string => {
-  const out: string[] = [];
-  let hiding = false;
-  let inHeader = true;
-  for (const line of script.split('\n')) {
-    if (line.startsWith('# docs:hide-start')) {
-      hiding = true;
-      continue;
-    }
-    if (line.startsWith('# docs:hide-end')) {
-      hiding = false;
-      continue;
-    }
-    if (hiding) continue;
-    if (inHeader) {
-      if (line.startsWith('API=')) {
-        inHeader = false;
-        continue;
-      }
-      if (/^#!|^# SPDX|^# Copyright|^#$|^# Docs:|^# Runs against|^# it at the local mock|^# expect-output:|^set -euo/.test(line)) continue;
-    }
-    out.push(line);
-  }
-  return out
-    .join('\n')
-    .replaceAll('"$API', '"https://api.oureawx.com')
-    .replaceAll('$API', 'https://api.oureawx.com')
-    .replaceAll('"$SCHEMA"', 'ourea.capnp')
-    .replace(/^\n+/, '')
-    .replace(/\n+$/, '\n');
-};
+export { forReader };
 
 const sdkTab = (task: Task, sdk: (typeof SDKS)[number]): TabCode => {
-  const entry = (sdkIndex as Record<string, { ref: string | null; commit?: string; tasks: Record<string, string> }>)[sdk.slug === 'csharp' ? 'dotnet' : sdk.slug];
+  const entry = (sdkIndex as Record<string, { ref: string | null; commit?: string; tasks: Record<string, string> }>)[sdk.refKey];
   const base = { slug: sdk.slug, label: sdk.label, hl: sdk.hl, repo: sdk.repo };
   const path = entry?.tasks?.[task];
+  if (manifest.tasks[task].sdk.length === 0) {
+    return { ...base, placeholder: 'This route is outside the SDKs\' scope. The curl tab shows the request; send it with any HTTP client.' };
+  }
   if (!path) {
     return { ...base, placeholder: `Coming in ${sdk.repoName} 0.1. Until then, the curl tab shows the exact request; the SDK sends the same canonical URL.` };
   }
@@ -90,7 +57,9 @@ export const tabsFor = (task: Task): TabCode[] => {
   const [curl, capnp] = TRANSPORTS;
   return [
     { slug: curl.slug, label: curl.label, hl: curl.hl, path: t.curl, code: forReader(raw(t.curl)) },
-    { slug: capnp.slug, label: capnp.label, hl: capnp.hl, path: t.capnp, code: forReader(raw(t.capnp)) },
+    t.capnp
+      ? { slug: capnp.slug, label: capnp.label, hl: capnp.hl, path: t.capnp, code: forReader(raw(t.capnp)) }
+      : { slug: capnp.slug, label: capnp.label, hl: capnp.hl, placeholder: "This route serves JSON only; there is no Cap'n Proto body." },
     ...SDKS.map((s) => sdkTab(task, s)),
   ];
 };

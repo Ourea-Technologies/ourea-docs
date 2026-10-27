@@ -46,7 +46,7 @@ export const rateLimitTable = (): Table => ({
 export const languageNotes = (slug: string): Table => {
   const s = SDKS.find((x) => x.slug === slug);
   if (!s) throw new Error(`unknown sdk ${slug}`);
-  const idx = sdkIndexData[s.slug === 'csharp' ? 'dotnet' : s.slug];
+  const idx = sdkIndexData[s.refKey];
   const runtime = idx?.runtime
     ? `${idx.runtime} (from the SDK manifest at ${idx.ref})`
     : `Stated in [the README's supported versions](${s.repo}#supported-versions) with the 0.1 release.`;

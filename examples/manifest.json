@@ -1,5 +1,5 @@
 {
-  "$comment": "Every example the docs show, by task. curl and capnp are files in this repo; sdk lists the example names looked for in each SDK repo's examples/ (normalized: case, '_' and '-' ignored). scripts/check-examples.mjs verifies this file.",
+  "$comment": "Every example the docs show, by task. curl and capnp are files in this repo; sdk lists the example names looked for in each SDK repo's examples/ (normalized: case, '_' and '-' ignored). scripts/check-examples.mjs verifies this file. capnp is null only for a route that serves no Cap'n Proto; sdk is empty only for an operation outside the SDKs' scope.",
   "tasks": {
     "quickstart": {
       "title": "Quickstart: an anonymous forecast, no signup.",
@@ -254,6 +254,25 @@
         "auth",
         "authentication"
       ]
+    },
+    "attribution": {
+      "title": "Data sources, licences and the notices to carry.",
+      "page": "/getting-started/",
+      "pro": false,
+      "curl": "examples/curl/attribution.sh",
+      "capnp": "examples/capnp/cli/attribution.sh",
+      "sdk": [
+        "attribution"
+      ]
+    },
+    "maps-token": {
+      "title": "A short-lived token for the forecast map's Pro layers (Pro).",
+      "page": "/features/auth-and-tiers/",
+      "pro": true,
+      "curl": "examples/curl/maps-token.sh",
+      "capnp": null,
+      "sdk": [],
+      "$comment": "getMapsToken serves JSON only (no Cap'n Proto), and the SDKs leave it out of scope for 0.x (BEHAVIOR.md section 3), so this task has only the curl example."
     }
   }
 }

@@ -12,5 +12,11 @@ set -euo pipefail
 API="${OUREA_BASE_URL:-https://api.oureawx.com}"
 
 # The latest storm reports.
-curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports"
-echo
+reports=$(curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports")
+echo "$reports"
+# One report card, by an id the list returned (jq reads it).
+id=$(echo "$reports" | jq -r '(.reports? // [])[0].id // empty')
+if [ -n "$id" ]; then
+  curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports/$id"
+  echo
+fi

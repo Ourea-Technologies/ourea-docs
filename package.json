@@ -19,8 +19,9 @@
     "mock": "node scripts/mock-server.mjs --port 8787",
     "sync:spec": "node scripts/sync-spec.mjs",
     "sync:examples": "node scripts/sync-examples.mjs",
-    "gate": "npm run build && npm run check:seo && node scripts/sync-spec.mjs --check && node scripts/sync-schema.mjs --check && node scripts/check-examples.mjs",
-    "sync:schema": "node scripts/sync-schema.mjs"
+    "gate": "npm run build && npm run check:seo && node scripts/check-reference.mjs dist && node scripts/sync-spec.mjs --check && node scripts/sync-schema.mjs --check && node scripts/check-examples.mjs",
+    "sync:schema": "node scripts/sync-schema.mjs",
+    "check:reference": "node scripts/check-reference.mjs dist"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.6",

@@ -16,3 +16,9 @@ SCHEMA="${OUREA_CAPNP_SCHEMA:-ourea.capnp}"
 # The latest storm reports.
 curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports?format=capnp" \
   | capnp decode "$SCHEMA" StormReportsResponse
+# One report card, by an id from the JSON list (jq reads it).
+id=$(curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports" | jq -r '(.reports? // [])[0].id // empty')
+if [ -n "$id" ]; then
+  curl -sS --fail-with-body --compressed "$API/api/v1/storm-reports/$id?format=capnp" \
+    | capnp decode "$SCHEMA" StormReportCard
+fi

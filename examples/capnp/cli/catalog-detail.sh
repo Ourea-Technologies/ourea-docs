@@ -19,3 +19,12 @@ curl -sS --fail-with-body --compressed "$API/api/v1/catalog/locations/mt-hood-me
 # Catalog locations in Oregon, 20 to a page; follow next_cursor for the rest.
 curl -sS --fail-with-body --compressed "$API/api/v1/catalog/locations?admin1=US-OR&format=capnp" \
   | capnp decode "$SCHEMA" CatalogPage
+# Observation stations in Oregon.
+curl -sS --fail-with-body --compressed "$API/api/v1/catalog/stations?admin1=US-OR&format=capnp" \
+  | capnp decode "$SCHEMA" CatalogPage
+# One station's detail, by a slug from the JSON list (jq reads it).
+slug=$(curl -sS --fail-with-body --compressed "$API/api/v1/catalog/stations?admin1=US-OR" | jq -r '.items[0].slug // empty')
+if [ -n "$slug" ]; then
+  curl -sS --fail-with-body --compressed "$API/api/v1/catalog/stations/$slug?format=capnp" \
+    | capnp decode "$SCHEMA" CatalogEntry
+fi

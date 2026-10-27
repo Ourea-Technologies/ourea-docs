@@ -4,8 +4,17 @@
 //
 // The API reference, rendered in the browser by Scalar from the public
 // OpenAPI file this site serves (/openapi/v1/openapi.yaml, a pinned copy of
-// ensemble-weather-spec). Try-it is off: v1 is the production API, and the
+// ensemble-weather-spec with each operation's tested examples as
+// x-codeSamples). Try-it is off: v1 is the production API, and the
 // reference never sends a request or asks for a key.
+//
+// The client picker shows only those tested samples (hiddenClients: true
+// hides Scalar's generated ones), and follows the site's language choice:
+// ?lang= or the switcher's remembered tab selects the matching sample, and
+// picking a sample here is remembered for the guide pages and written into
+// the URL.
+import { ALIASES, ALL } from '../../lib/languages.mjs';
+import { scalarClientId } from '../../lib/code-samples.mjs';
 const title = 'API reference · Ourea Docs';
 const description = 'The Ourea Weather API v1 reference: every route, parameter, response schema and error code, generated from the public OpenAPI spec.';
 const canonical = new URL('/api/', Astro.site).href;
@@ -13,12 +22,22 @@ const config = {
   url: '/openapi/v1/openapi.yaml',
   hideTestRequestButton: true,
   hideClientButton: true,
+  hiddenClients: true,
+  // No hosted AI chat or MCP generator on the reference: the docs MCP server
+  // (/mcp) returns this site's own text instead.
+  agent: { disabled: true },
+  mcp: { disabled: true },
   withDefaultFonts: false,
   telemetry: false,
   showDeveloperTools: 'never',
   persistAuth: false,
   documentDownloadType: 'yaml',
   metaData: { title },
+};
+const langSync = {
+  ids: Object.fromEntries(ALL.map((l) => [l.slug, scalarClientId(l.slug)])),
+  labels: Object.fromEntries(ALL.map((l) => [l.slug, l.label])),
+  aliases: ALIASES,
 };
 const breadcrumb = {
   '@context': 'https://schema.org',
@@ -78,6 +97,36 @@ const article = {
     </nav>
     <noscript><p>The interactive reference needs JavaScript. The contract itself is <a href="/openapi/v1/openapi.yaml">openapi.yaml</a>.</p></noscript>
     <div id="app"></div>
+    <script is:inline define:vars={{ langSync }}>
+      (() => {
+        const SCALAR = 'scalar-reference-selected-client-v2';
+        const TABS = 'starlight-synced-tabs__lang';
+        const { ids, labels, aliases } = langSync;
+        const slugOfId = Object.fromEntries(Object.entries(ids).map(([s, id]) => [id, s]));
+        const slugOfLabel = Object.fromEntries(Object.entries(labels).map(([s, l]) => [l, s]));
+        try {
+          const raw = (new URLSearchParams(location.search).get('lang') || '').toLowerCase();
+          let slug = aliases[raw] || raw;
+          if (!ids[slug]) slug = slugOfLabel[localStorage.getItem(TABS)];
+          if (ids[slug]) {
+            localStorage.setItem(SCALAR, ids[slug]);
+            localStorage.setItem(TABS, labels[slug]);
+          }
+          const set = Storage.prototype.setItem;
+          Storage.prototype.setItem = function (key, value) {
+            set.call(this, key, value);
+            const picked = this === localStorage && key === SCALAR && slugOfId[value];
+            if (!picked) return;
+            set.call(this, TABS, labels[picked]);
+            const url = new URL(location.href);
+            url.searchParams.set('lang', picked);
+            history.replaceState(history.state, '', url);
+          };
+        } catch (e) {
+          /* storage blocked: the reference opens on curl */
+        }
+      })();
+    </script>
     <script src="/scalar/standalone.js" is:inline></script>
     <script is:inline define:vars={{ config }}>
       Scalar.createApiReference('#app', config);

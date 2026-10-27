@@ -32,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const spec = YAML.parse(readFileSync(join(root, 'public/openapi/v1/openapi.yaml'), 'utf8'));
+const spec = YAML.parse(readFileSync(join(root, 'spec/openapi/v1/openapi.yaml'), 'utf8'));
 const vectorsDir = join(root, 'spec/vectors');
 const schemaPath = join(root, 'public/schema/v1/ourea.capnp');
 const goldenForecast = join(root, 'examples/capnp/fixtures/forecast_response.v9.bin');
@@ -130,6 +130,8 @@ const fallbackBody = (opId, q) => {
     case 'getAllLocations':
     case 'getLocations':
       return 'locations-page.json';
+    case 'getMapsToken':
+      return 'maps-token.json'; // the spec's own example response
     default:
       return null;
   }

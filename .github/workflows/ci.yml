@@ -35,6 +35,9 @@ jobs:
       # Titles, descriptions, canonicals, OG/Twitter, JSON-LD, sitemap
       # coverage, robots.txt, and every href/src in the built HTML.
       - run: node scripts/check-seo.mjs dist
+      # The served openapi.yaml is the pinned spec plus x-codeSamples only,
+      # every operation has a curl sample, and every sample is a tested file.
+      - run: node scripts/check-reference.mjs dist
       - name: llms.txt and Markdown alternates exist
         run: test -s dist/llms.txt && test -s dist/llms-full.txt && test -s dist/getting-started.md
 

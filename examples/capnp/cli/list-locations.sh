@@ -13,5 +13,9 @@ API="${OUREA_BASE_URL:-https://api.oureawx.com}"
 SCHEMA="${OUREA_CAPNP_SCHEMA:-ourea.capnp}"
 # docs:hide-end
 
+# The first 100 Oregon locations, in slug order.
 curl -sS --fail-with-body --compressed "$API/api/v1/locations/or?format=capnp&limit=100" \
+  | capnp decode "$SCHEMA" ListLocationsResponse
+# Every location in the coverage area, 500 to a page.
+curl -sS --fail-with-body --compressed "$API/api/v1/locations?format=capnp&limit=500" \
   | capnp decode "$SCHEMA" ListLocationsResponse

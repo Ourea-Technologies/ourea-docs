@@ -6,7 +6,8 @@
 //   * a page references an example task, SDK or language that does not exist;
 //   * a file named by examples/manifest.json, examples/sdk/index.json or
 //     src/lib/examples.ts does not exist;
-//   * a manifest task lacks its curl or Cap'n Proto file;
+//   * a manifest task lacks its curl file, or its Cap'n Proto file while a
+//     route it calls serves format=capnp;
 //   * src/data/limits.json disagrees with what the public OpenAPI spec states;
 //   * any example fails when run (curl and Cap'n Proto CLI scripts against
 //     the mock server, the no-SDK quickstarts, the Cap'n Proto decoders).
@@ -19,6 +20,9 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import YAML from 'yaml';
+import { SPEC_PATH, operationsOf } from '../src/lib/code-samples.mjs';
+import { forReader, shellCalls } from '../src/lib/reader.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -36,13 +40,26 @@ const sdkIndex = JSON.parse(read('examples/sdk/index.json'));
 const refs = JSON.parse(read('examples/sdk-refs.json'));
 const tasks = manifest.tasks;
 
-// 1. Manifest files.
+// 1. Manifest files. A task may go without a Cap'n Proto example only when
+// every route its curl example calls serves no Cap'n Proto body, and without
+// SDK example names only when every route is outside the SDKs' scope
+// (BEHAVIOR.md section 3: getMapsToken).
+const OUT_OF_SDK_SCOPE = new Set(['getMapsToken']);
+const specDoc = YAML.parse(read(SPEC_PATH));
+const specOps = operationsOf(specDoc);
+const opsCalled = (file) => shellCalls(forReader(read(file))).map((c) => specOps.find((o) => o.regex.test(c.path)));
 for (const [name, t] of Object.entries(tasks)) {
-  for (const key of ['curl', 'capnp']) {
-    if (!t[key]) fail(`manifest task ${name}: no ${key} example`);
-    else if (!exists(t[key])) fail(`manifest task ${name}: ${t[key]} does not exist`);
+  if (!t.curl) fail(`manifest task ${name}: no curl example`);
+  else if (!exists(t.curl)) fail(`manifest task ${name}: ${t.curl} does not exist`);
+  const called = t.curl && exists(t.curl) ? opsCalled(t.curl) : [];
+  if (called.some((o) => !o)) fail(`manifest task ${name}: ${t.curl} calls a path no operation in the spec matches`);
+  if (t.capnp) {
+    if (!exists(t.capnp)) fail(`manifest task ${name}: ${t.capnp} does not exist`);
+  } else if (called.some((o) => o?.op.responses?.['200']?.content?.['application/x-capnp'])) {
+    fail(`manifest task ${name}: no Cap'n Proto example, but a route it calls serves format=capnp`);
   }
-  if (!Array.isArray(t.sdk) || t.sdk.length === 0) fail(`manifest task ${name}: no SDK example names`);
+  if (!Array.isArray(t.sdk)) fail(`manifest task ${name}: sdk must be a list of example names`);
+  else if (t.sdk.length === 0 && !called.every((o) => o && OUT_OF_SDK_SCOPE.has(o.id))) fail(`manifest task ${name}: no SDK example names`);
 }
 // Every shell example is in the manifest (no orphans that CI runs but no page shows).
 for (const dir of ['examples/curl', 'examples/capnp/cli']) {
@@ -92,7 +109,7 @@ for (const f of pages) {
 // 5. Published limits: each one the spec states must still be stated there.
 try {
   const limits = JSON.parse(read('src/data/limits.json'));
-  const spec = read('public/openapi/v1/openapi.yaml');
+  const spec = read('spec/openapi/v1/openapi.yaml');
   const { free, pro } = limits.horizon_hours;
   if (!spec.includes(`Free ${free}, Pro ${pro}`)) fail(`src/data/limits.json: the OpenAPI spec no longer says the horizon is "Free ${free}, Pro ${pro}"`);
   const { anonymous, free: freePage } = limits.list_page_max;

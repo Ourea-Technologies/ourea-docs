@@ -4,7 +4,8 @@
 //
 // Copies the shared test vectors of the ensemble-weather-spec repository, at
 // the commit named in spec/VERSION, into spec/vectors/, and its public OpenAPI
-// file into public/openapi/v1/openapi.yaml, which the site serves, the API
+// file into spec/openapi/v1/openapi.yaml, which the site serves (with the
+// tested code samples added, src/pages/openapi/v1/openapi.yaml.ts), the API
 // reference renders and the mock server answers from.
 //
 // The served OpenAPI file has its maintainer-only text removed (decision and
@@ -81,7 +82,7 @@ if (!isDeepStrictEqual(withoutProse(YAML.parse(original)), withoutProse(YAML.par
   console.error('scrubbing changed the OpenAPI contract itself (not just descriptions); refusing');
   process.exit(1);
 }
-targets.set(join('public', 'openapi', 'v1', 'openapi.yaml'), Buffer.from(served));
+targets.set(join('spec', 'openapi', 'v1', 'openapi.yaml'), Buffer.from(served));
 
 if (check) {
   let bad = 0;

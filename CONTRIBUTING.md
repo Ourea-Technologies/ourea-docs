@@ -28,6 +28,7 @@ npm ci
 npm run dev                         # http://localhost:4321
 npm run build                       # static site in dist/, fails on a broken internal link
 node scripts/check-seo.mjs dist     # titles, descriptions, canonicals, JSON-LD, sitemap, links
+node scripts/check-reference.mjs    # the API reference's code samples (after a build)
 node scripts/check-examples.mjs     # every example exists and runs
 ```
 
@@ -53,7 +54,7 @@ toolchains you don't have. The real API is never called by the checks.
   fix an SDK example, change it in the SDK repository, then bump the ref here
   and re-run the sync. A task an SDK has no example for shows a "coming in
   0.1" placeholder.
-- `spec/` and `public/openapi/` come from
+- `spec/` (the vectors and `spec/openapi/v1/openapi.yaml`) comes from
   [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec)
   at `spec/VERSION` (`node scripts/sync-spec.mjs`); `public/schema/v1/` is the
   published Cap'n Proto schema (`node scripts/sync-schema.mjs --check`
