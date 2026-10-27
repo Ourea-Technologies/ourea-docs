@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or show what you built
+    url: https://github.com/Ourea-Technologies/ourea-docs/discussions
+    about: Questions go to Discussions (Q&A); share projects in Show and tell.
+  - name: Bug or feature in an SDK
+    url: https://docs.oureawx.com/community/#report-a-bug
+    about: Each SDK has its own repository and issue forms.
+  - name: Feature request for the API
+    url: https://github.com/Ourea-Technologies/ensemble-weather-spec/issues/new/choose
+    about: The API's behaviour is specified in ensemble-weather-spec.
+  - name: Report a security vulnerability
+    url: https://github.com/Ourea-Technologies/ourea-docs/security/advisories/new
+    about: Privately, never in a public issue.
+  - name: The docs
+    url: https://docs.oureawx.com
+    about: Guides, concepts and the API reference.

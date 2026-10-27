@@ -1,0 +1,34 @@
+# Nightly: the curl, Cap'n Proto CLI and no-SDK examples against the real API,
+# ANONYMOUSLY (no key, no secret). Pro-only examples print that they need a
+# key and exit 0. Never runs on pull requests.
+name: Live examples
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Examples against https://api.oureawx.com
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends capnproto jq
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: examples/http/go/go.mod
+          cache: false
+      - name: curl and Cap'n Proto CLI examples
+        run: node scripts/run-curl-examples.mjs --live
+      - name: No-SDK quickstarts (the toolchains on the image)
+        run: node scripts/run-http-examples.mjs --live --only python,javascript,go

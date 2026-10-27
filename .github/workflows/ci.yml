@@ -1,0 +1,164 @@
+# CI for docs.oureawx.com: build, links and SEO, every example, the Cap'n Proto
+# decoders, and a workflow/dependency audit. Never deploys and never calls the
+# real API (the examples run against scripts/mock-server.mjs).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, links and SEO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Includes starlight-links-validator: every internal link and #anchor in
+      # the content must resolve, or the build fails.
+      - run: npm run build
+      # Titles, descriptions, canonicals, OG/Twitter, JSON-LD, sitemap
+      # coverage, robots.txt, and every href/src in the built HTML.
+      - run: node scripts/check-seo.mjs dist
+      - name: llms.txt and Markdown alternates exist
+        run: test -s dist/llms.txt && test -s dist/llms-full.txt && test -s dist/getting-started.md
+
+  spec:
+    name: Spec copy and published schema
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends capnproto libcapnp-dev
+      # Clones the public ensemble-weather-spec repository at spec/VERSION.
+      - run: node scripts/sync-spec.mjs --check
+      # The published schema compiles, carries no maintainer-only comments,
+      # and its schema nodes match the ones recorded when it was synced.
+      - run: node scripts/sync-schema.mjs --check
+
+  examples:
+    name: Example references, curl and Cap'n Proto CLI examples
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends capnproto jq
+      # Fails if a page references a missing example, then runs every curl and
+      # capnp CLI script against the mock server (anonymous and with a key).
+      - run: node scripts/check-examples.mjs --run curl
+
+  http-examples:
+    name: No-SDK quickstarts (Python, JS, Go, C#, Java, Kotlin, Swift)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: examples/http/go/go.mod
+          cache: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 8.0.x
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          gradle-version: 9.8.2
+      # python3 and swift come with the ubuntu-24.04 image. Nothing may be skipped.
+      - run: node scripts/run-http-examples.mjs
+
+  capnp-decoders:
+    name: Cap'n Proto decoders (Rust, Python, C++, Go, Kotlin)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends capnproto libcapnp-dev pkg-config g++
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: examples/capnp/go/go.mod
+          cache: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          gradle-version: 9.8.2
+      # The Kotlin example's gen.sh builds capnpc-java from its pinned
+      # capnproto-java release tag. Rust (cargo) comes with the image. Each decoder must print exactly
+      # examples/capnp/expected/forecast_response.v9.txt for the golden message.
+      - run: node scripts/run-capnp-examples.mjs
+
+  zizmor:
+    name: Workflow audit (zizmor)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          advanced-security: false
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: low
+          deny-licenses: GPL-2.0-only, GPL-3.0-only, AGPL-3.0-only

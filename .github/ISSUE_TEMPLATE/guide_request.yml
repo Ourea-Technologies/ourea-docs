@@ -1,0 +1,21 @@
+name: Request a guide
+description: A task, recipe or concept you wish the docs explained.
+title: "Guide: "
+labels: [documentation, enhancement]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: The problem first, for example "send a powder alert when the chance of 6 in passes 60 %".
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Language or tool
+      placeholder: Python, curl, Excel, ...
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you read or tried so far? (optional)

@@ -1,0 +1,23 @@
+# Repository labels (SDK-STANDARD "Community and contributing").
+# Apply with a label sync tool (for example `gh label create --force`).
+- name: bug
+  color: d73a4a
+  description: Something is wrong
+- name: enhancement
+  color: a2eeef
+  description: A new feature or a better way
+- name: documentation
+  color: 0075ca
+  description: Docs pages, examples and guides
+- name: good first issue
+  color: 7057ff
+  description: A good place to start contributing
+- name: help wanted
+  color: 008672
+  description: Extra attention is welcome
+- name: question
+  color: d876e3
+  description: Better asked in Discussions
+- name: needs-spec
+  color: fbca04
+  description: Needs an API or spec change (ensemble-weather-spec)
