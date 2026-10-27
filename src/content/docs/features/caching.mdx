@@ -1,0 +1,94 @@
+---
+title: "Caching and ETags"
+seoTitle: "Caching, ETags and canonical URLs"
+description: "How Ourea's edge cache works: canonical URLs, keyless open routes, Cache-Control by caller, strong ETags and 304 Not Modified."
+sidebar:
+  order: 14
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+Cloudflare sits in front of the API and **keys its cache on the URL alone**.
+Only requests that carry **no credential** (no `X-API-Key`, no
+`Authorization`, no session cookie) are eligible. Three rules follow.
+
+## 1. Send the canonical URL
+
+Two spellings of one request are two cache entries, each a miss. The
+canonical URL is:
+
+1. **State** as the lowercase USPS code (`or`), the location as its catalog
+   slug.
+2. **No parameter at its default.** Leave out `units=metric`,
+   `max_hours=24`, `nowcast=true`, `format=json`, `feels_like=nws`,
+   `daily=true`, `hourly=true`, `include_past=false`, `models=false`,
+   `members=false`, and on nearby `limit=3` and `radius_km=50`.
+3. **Each parameter under its own name** (`units`, never the alias
+   `unit_system`), once. An unknown parameter is a `400`.
+4. **Alphabetical order** by parameter name.
+5. **Encoding:** RFC 3986 percent-encoding (space is `%20`, never `+`),
+   except that `prob` and `totals` use literal `:` and `,`.
+6. **Numbers:** the shortest decimal that round-trips; coordinates exactly as
+   you have them; [thresholds](/features/probabilities/#the-canonical-form) at
+   the variable's precision, with `prob` terms sorted.
+
+On the location routes a non-canonical state, slug, default or alias answers
+`301` to the canonical URL (cacheable for an hour). A URL that differs only in
+parameter order, or only in the percent-encoding of `:` and `,`, is served as
+sent, but it is a separate cache entry. Every example on this site, and every
+SDK, sends the canonical form.
+
+## 2. Leave the key off open routes
+
+The search, catalog detail and attribution routes need no credentials. Send
+them **without** `X-API-Key` even when you have one, so you share the edge
+entry with every other caller. The SDKs do this by default and keep an option
+to always send the key. (The catalog list routes are sent with your key: an
+anonymous list page is capped and catalog walks are slowed per address.)
+
+## 3. Revalidate with the ETag
+
+Every representation has a strong `ETag`. Send it back byte for byte as
+`If-None-Match`; while it is current the server answers `304 Not Modified`
+with no body. It compares weakly, because Cloudflare weakens tags when it
+compresses, and on a credential-free request the edge itself can answer the
+`304`.
+
+<Example task="etag" op="getLocationForecast" />
+
+## What the server sends
+
+| Caller and body | `Cache-Control` |
+|---|---|
+| Anonymous, base forecast (`nowcast=false`) | `public, max-age=0, s-maxage=N, stale-while-revalidate=300`, N until the next expected model cycle (300 to 3600 s) |
+| Anonymous, default forecast (nowcast-blended) | `public, max-age=0, s-maxage=60, stale-while-revalidate=30` |
+| Anonymous, `/current` | `public, max-age=0, s-maxage=30, stale-while-revalidate=15` |
+| Anonymous, location lists and nearby | `public, max-age=300, s-maxage=900, stale-while-revalidate=300` |
+| Any API key or session | `private, max-age=0`: the body depends on the tier |
+| Alerts | `private, no-cache` with an ETag |
+| Errors | `no-store` |
+
+A forecast whose series starts at the current hour (the default) is current
+only until the next hour boundary, so its shared TTL ends there too, and the
+base layer's ETag names its first hour. With `include_past=true`, a pinned
+`run` or `hourly=false`, nothing rolls at the hour.
+
+`max-age=0` means a browser or private cache revalidates every time;
+`s-maxage` and `stale-while-revalidate` are for the edge.
+
+## In your client
+
+- Keep a private ETag cache keyed by the full URL plus a hash of the key
+  (never the key itself), so keyless and keyed entries never mix.
+- Never store a `no-store` response; honour `max-age`, which is 0, so every
+  call revalidates.
+- Add no timestamps, nonces or cache-busting parameters.
+
+The SDKs do all of this by default: an in-memory LRU of 256 entries and
+32 MiB, replaceable with your own store or turned off.
+
+<Aside>
+`format=capnp` is part of the URL, so a Cap'n Proto body has its own cache
+entry and its own ETag, under the same policy as the JSON one.
+</Aside>

@@ -1,0 +1,45 @@
+---
+title: "A snow forecast API"
+seoTitle: "Snow forecast API · snowfall probabilities"
+description: "Snowfall amounts, snow probabilities, snow level and storm-total ranges for US ski areas and mountains, computed from the full ensemble."
+---
+
+import Example from '../../../components/Example.astro';
+
+Snow is where a single number misleads most: timing, snow level and
+snow-to-liquid ratio all vary member to member. Ourea serves snow as a
+distribution and lets you ask the questions skiers and road crews actually
+ask.
+
+## "Will we get 6 inches?"
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+Each answer is the share of ensemble members whose own snowfall total over the
+window reaches the threshold, with the window and member count.
+[Probabilities](/features/probabilities/).
+
+## "How much, at most and at least?"
+
+The storm-total range, from each member's own total:
+
+<Example task="storm-total" op="getLocationForecast" />
+
+Show it as "most likely p50, at least p10, could reach p90". Never sum hourly
+quantiles ([why](/concepts/adding-quantiles/)).
+
+## Every snow field
+
+- Hourly `snowfall` at the location's elevation, with the chance of measurable
+  snow; `slr` (snow-to-liquid ratio); `snow_level`; `freezing_level`;
+  `precip_type` with `snow_probability`.
+- Daily `total_snowfall`, `snow_probability` (P(≥ 2.5 mm)),
+  `total_snowfall_if_wet`, `snow_level`, and `storm_orientation`
+  (how the snow ratio changes through a storm).
+- `snow_outlook`: next 24 h, 48 h and 7 days, plus overnight (4 pm to 9 am),
+  with ranges.
+- Plumes: every member's running snowfall total.
+
+[Variables](/features/variables/) lists them all. For ski areas, ask for the
+base, mid and summit with `elevations=all`
+([Elevation](/concepts/elevation/)).

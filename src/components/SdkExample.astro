@@ -1,0 +1,16 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// One SDK's program for one task, synced from that SDK's examples/ at its
+// pinned ref, or the "coming in 0.1" placeholder.
+import { Code } from '@astrojs/starlight/components';
+import { tabsFor, type Task } from '../lib/examples';
+interface Props {
+  sdk: string;
+  task: Task;
+}
+const tab = tabsFor(Astro.props.task).find((t) => t.slug === Astro.props.sdk);
+if (!tab) throw new Error(`unknown sdk ${Astro.props.sdk}`);
+---
+
+{tab.code ? <Code code={tab.code} lang={tab.hl} title={tab.path?.split('/').pop()} /> : <p class="ourea-example__placeholder">{tab.placeholder}</p>}
+{tab.sourceUrl && <p class="ourea-example__links"><a href={tab.sourceUrl}>This example in {tab.repo?.replace('https://github.com/', '')}</a></p>}

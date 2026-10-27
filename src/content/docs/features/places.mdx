@@ -1,0 +1,100 @@
+---
+title: "Ways to ask for a place"
+seoTitle: "Places · named locations, coordinates, search"
+description: "Ask for a forecast by named location, by latitude and longitude, by search, or by the nearest locations to a place or a point."
+sidebar:
+  order: 1
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+There are four ways to say where. Named locations work without a key;
+forecasts at arbitrary coordinates need Pro.
+
+## A named location: state and slug
+
+A location is the pair (state, slug): `/api/v1/locations/{state}/{slug}`, for
+example `/api/v1/locations/or/mt-hood-meadows`. The state is the lowercase
+USPS code and the slug is the catalog slug, dash-separated, as every response
+serves it in `location.slug`.
+
+<Example task="forecast-by-location" op="getLocationForecast" />
+
+Other spellings still resolve: a state name (`oregon`), an upper-case code,
+an airport's FAA code (`pdx`), the legacy camelCase name (`mtHoodMeadows`) and
+a retired or renamed slug. On the location routes each of those answers
+`301 Moved Permanently` to the canonical URL, which costs you a round trip
+and a separate edge-cache entry, so store and send the canonical pair. The
+SDKs accept `"or/mt-hood-meadows"` as one string and send the two segments
+percent-encoded. A state with no onboarded locations, or an unknown state,
+answers `404`.
+
+## Coordinates (Pro)
+
+`GET /api/v1/forecast?lat=…&lon=…` returns the same response as a named
+location, plus a `point` block saying where it was computed.
+
+<Example task="point-forecast" op="getPointForecast" />
+
+- **Quantization.** `lat` and `lon` are rounded to the nearest 0.01° (about
+  1.1 km) and the forecast is computed there. `point.lat`/`point.lon` are
+  the served coordinates, `point.requested_lat`/`point.requested_lon` the
+  ones you sent. To reuse a cached response, send the quantized coordinates
+  back.
+- **Elevation.** `elevation_m` (always metres, whatever `units` is) is
+  optional; when given it is used as sent and always wins
+  (`point.elevation_source: request`). When omitted, the server reads the
+  ground elevation from the USGS 3DEP 1/3 arc-second (about 10 m) DEM at the
+  quantized point (`dem_3dep_10m`). Where the DEM has no value (water, a
+  void) the request is refused with `400 ELEVATION_REQUIRED`: an elevation is
+  never guessed. See [Elevation](/concepts/elevation/).
+- **Coverage.** The point must be inside the forecast coverage window and
+  over land in a US state; otherwise `404 OUTSIDE_COVERAGE`.
+- **Tier.** Free and anonymous callers get `403 PRO_REQUIRED`, checked
+  before any validation.
+
+## Search
+
+`GET /api/v1/search/locations?q=…` searches the published catalog by name.
+It needs no credentials.
+
+<Example task="search" op="searchLocations" />
+
+- `q` needs at least 2 characters after normalization (lowercased,
+  diacritics folded, punctuation ignored).
+- Matches rank exact name, then name prefix, then word prefix ("york" finds
+  "New York"), then substring; cities rank before trailheads, shorter names
+  first.
+- A trailing state in `q` ("boston ma") is a soft hint: that state ranks
+  first. `state`, `county` and `type` are hard filters.
+- Observation stations appear only when you ask for them with
+  `type=observation_station`.
+- `limit` defaults to 20 (1 to 100).
+
+<Aside type="caution">
+Key search results by `key` (`"<state>-<slug>"`), not by `slug`: bare slugs
+are only unique within a state.
+</Aside>
+
+## Nearby
+
+The nearest public locations to a location or to a coordinate, nearest first,
+in any state. Observation stations are never listed, and a location is never
+its own neighbour.
+
+<Example task="nearby" op="getNearbyLocations" />
+
+- `limit` defaults to 3 (1 to 20); `radius_km` defaults to 50 and is capped
+  at 100.
+- Both routes work without credentials. The rows count against your hourly
+  catalog-row budget as the number of rows returned, not as a list page: ask
+  for the few rows you show rather than paging through a state list.
+- `units` changes the rows' `elevations[].elevation`; `elevation_m` is always
+  metres and `distance_km` always kilometres.
+
+## Reference
+
+[`getLocationForecast`](/api/), [`getPointForecast`](/api/),
+[`searchLocations`](/api/), [`getNearbyLocations`](/api/) and
+[`getNearbyByCoordinates`](/api/) in the API reference.

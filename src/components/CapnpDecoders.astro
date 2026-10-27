@@ -1,0 +1,20 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// The Cap'n Proto decoders, each the tested file in examples/capnp/<lang>/.
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
+import { CAPNP_DECODERS, raw } from '../lib/examples';
+---
+
+<Tabs syncKey="capnp-decoder">
+  {
+    CAPNP_DECODERS.map((d) => (
+      <TabItem label={d.label}>
+        <Code code={raw(d.path)} lang={d.hl} title={d.path.replace('examples/capnp/', '')} />
+        <details>
+          <summary>Build file: {d.build.split('/').pop()}</summary>
+          <Code code={raw(d.build)} lang={d.build.endsWith('.toml') ? 'toml' : d.build.endsWith('.sh') ? 'bash' : 'text'} />
+        </details>
+      </TabItem>
+    ))
+  }
+</Tabs>

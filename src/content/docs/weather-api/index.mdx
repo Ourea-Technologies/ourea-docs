@@ -1,0 +1,69 @@
+---
+title: "The Ourea weather API"
+seoTitle: "Ourea weather API · probabilistic forecasts"
+description: "A probabilistic weather API for the contiguous US: ensemble forecasts, probabilities and window totals, free for named locations, with official SDKs."
+schemaType: WebAPI
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+[Ourea](https://oureawx.com) is a weather API built around uncertainty. Each
+forecast hour for the contiguous United States is blended from up to five
+ensembles (ECMWF AIFS-ENS and IFS-ENS, NOAA AIGEFS, GEFS and RRFS), calibrated,
+and served with its full distribution: quantiles for every variable,
+probabilities for the events you name, and storm-total ranges computed from
+each member's own total.
+
+<Example task="quickstart" op="getLocationForecast" />
+
+## What you get
+
+- **Forecasts by place.** Ski areas, mountain passes, trailheads, summits,
+  towns and airports by state and slug; any point by latitude and longitude
+  with Pro. [Places](/features/places/).
+- **Probabilities on request.** `prob=snowfall:ge:6.000:24h` returns the share
+  of members with at least 6 in in 24 h, with the window and member count.
+  [Probabilities](/features/probabilities/).
+- **Window totals.** The range of a storm total, done right.
+  [Window totals](/features/window-totals/).
+- **Plumes.** Every member, every hour. [Plumes](/features/plumes/).
+- **Live layers.** The first hours blend station observations, MRMS radar and
+  GOES cloud; `/current` and NWS alerts. [Nowcast](/features/nowcast/).
+- **Two formats.** JSON, or the same values as Cap'n Proto.
+  [JSON or Cap'n Proto?](/json-or-capnp/)
+- **Cache-friendly.** Canonical URLs, strong ETags, `304`s.
+  [Caching](/features/caching/).
+
+## Free, and what needs Pro
+
+Anonymous requests and Free keys are served at the Free tier: named-location
+forecasts to 10 days (240 h) from the latest run, current conditions and
+alerts for named locations, search, nearby and the catalog. Forecasts,
+current conditions and alerts **at coordinates**, per-model data, pinned
+runs and the 15-day horizon need Pro. [The free tier in full](/weather-api/free/).
+
+## By use
+
+<CardGrid>
+  <LinkCard title="Free weather API" href="/weather-api/free/" />
+  <LinkCard title="No signup, no API key" href="/weather-api/no-api-key/" />
+  <LinkCard title="Probabilistic forecasts" href="/weather-api/probabilistic/" />
+  <LinkCard title="Ensemble forecasts" href="/weather-api/ensemble/" />
+  <LinkCard title="Snow forecasts" href="/weather-api/snow/" />
+  <LinkCard title="Mountain weather" href="/weather-api/mountain/" />
+  <LinkCard title="Precipitation probability" href="/weather-api/precipitation-probability/" />
+</CardGrid>
+
+## By language
+
+<CardGrid>
+  <LinkCard title="Python" href="/weather-api/python/" />
+  <LinkCard title="JavaScript and TypeScript" href="/weather-api/javascript/" />
+  <LinkCard title="Node.js" href="/weather-api/nodejs/" />
+  <LinkCard title="Go" href="/weather-api/go/" />
+  <LinkCard title="C# and .NET" href="/weather-api/csharp/" />
+  <LinkCard title="Java" href="/weather-api/java/" />
+  <LinkCard title="Kotlin" href="/weather-api/kotlin/" />
+  <LinkCard title="Swift and iOS" href="/weather-api/swift/" />
+</CardGrid>

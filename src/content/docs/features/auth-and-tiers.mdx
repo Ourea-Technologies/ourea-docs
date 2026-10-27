@@ -1,0 +1,49 @@
+---
+title: "Auth and tiers"
+seoTitle: "Authentication and tiers · anonymous, Free, Pro"
+description: "Anonymous, Free and Pro access to the Ourea weather API, how to send X-API-Key, and what 401 and 403 mean."
+sidebar:
+  order: 15
+---
+
+import Example from '../../../components/Example.astro';
+import TierTable from '../../../components/TierTable.astro';
+
+Send an API key in the `X-API-Key` header. No key at all is valid: forecast,
+current-conditions and alert routes for named locations answer without
+credentials at the Free tier, and the search and catalog routes need none.
+
+<Example task="api-key" op="getLocationForecast" />
+
+## Tiers
+
+<TierTable />
+
+There are three caller classes. **Anonymous** (no credentials) is always
+Free. **Free** is an account or key on the Free plan. **Pro** is a key or
+session whose account has Pro. Pro-only options are refused, not ignored: a
+Free caller asking for `models=true`, `run=` or a coordinate route gets
+`403 PRO_REQUIRED`.
+
+## 401 and 403
+
+- `401 INVALID_API_KEY`: the key is not a valid, active key (unknown,
+  revoked, or owned by an account that is suspended or not yet verified). It
+  is refused rather than served as anonymous, so a mistyped or rotated key
+  fails loudly. Send no key at all for anonymous access.
+- `403 PRO_REQUIRED`: the option or route needs Pro. Drop it for the Free
+  answer, or use a Pro key.
+
+## Keys
+
+Create keys from your account at
+[oureawx.com/account](https://oureawx.com/account); see
+[Get an API key](/getting-started/#get-an-api-key) for key hygiene. Upgrade at
+[oureawx.com/pricing](https://oureawx.com/pricing).
+
+The SDKs read `OUREA_API_KEY` from the environment, never log it, never put
+it in an error message, and never send it to another host on a redirect.
+
+## Reference
+
+The `apiKey` security scheme in the [API reference](/api/).

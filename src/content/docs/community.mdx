@@ -1,0 +1,84 @@
+---
+title: "Contribute and get help"
+seoTitle: "Contribute to Ourea, report bugs, get help"
+description: "Report a bug, request an SDK or API feature, ask a question, show what you built, or contribute code and docs to Ourea's open-source SDKs and docs."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Ourea's SDKs, API contract and these docs are open source under the
+BSD-2-Clause licence, on GitHub at
+[Ourea-Technologies](https://github.com/Ourea-Technologies). Bug reports,
+ideas, questions and pull requests are all welcome, and the people who build
+Ourea read every one.
+
+## Report a bug
+
+Something wrong in an SDK? Open an issue on that SDK's repository: its bug
+form asks for the SDK version, your runtime and OS, what happened and what you
+expected, a minimal snippet, and the `request_id` from the error if there is
+one. **Never paste an API key.**
+
+| SDK | Report a bug or request a feature |
+|---|---|
+| Python | [ensemble-weather-python](https://github.com/Ourea-Technologies/ensemble-weather-python/issues/new/choose) |
+| TypeScript / JavaScript | [ensemble-weather-typescript](https://github.com/Ourea-Technologies/ensemble-weather-typescript/issues/new/choose) |
+| Go | [ensemble-weather-go](https://github.com/Ourea-Technologies/ensemble-weather-go/issues/new/choose) |
+| C# / .NET | [ensemble-weather-dotnet](https://github.com/Ourea-Technologies/ensemble-weather-dotnet/issues/new/choose) |
+| Java | [ensemble-weather-java](https://github.com/Ourea-Technologies/ensemble-weather-java/issues/new/choose) |
+| Kotlin | [ensemble-weather-kotlin](https://github.com/Ourea-Technologies/ensemble-weather-kotlin/issues/new/choose) |
+| Swift | [ensemble-weather-swift](https://github.com/Ourea-Technologies/ensemble-weather-swift/issues/new/choose) |
+
+Not sure which SDK, or it happens with curl too? Then it is probably the API:
+use the API row below.
+
+## Request a feature
+
+- **In an SDK** (a helper, an idiom, a language version): the SDK's
+  repository, above, using its feature request form. Describe the problem
+  first, then the API you'd like.
+- **In the API** (a new field, parameter, route or variable): the
+  [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec/issues/new/choose)
+  repository, where the API's behaviour is specified. SDK feature requests
+  that need a server change are moved there and labelled `needs-spec`.
+- **A guide or example** you wish these docs had:
+  [request a guide](https://github.com/Ourea-Technologies/ourea-docs/issues/new?template=guide_request.yml).
+
+## Ask a question
+
+Questions go to GitHub Discussions (Q&A), not issues:
+[ourea-docs Discussions](https://github.com/Ourea-Technologies/ourea-docs/discussions)
+for the API and these docs, or the Discussions of the SDK you use. Search
+first: someone may have asked already.
+
+## Show what you built
+
+Built something with Ourea: a powder alert, a plume chart, a trail
+dashboard? Post it in **Show and tell** in
+[Discussions](https://github.com/Ourea-Technologies/ourea-docs/discussions).
+We'd love to see it.
+
+## Contribute code or docs
+
+- **Docs fixes:** every page has an **Edit page** link at the bottom, and a
+  "Found a problem with this page?" link that opens a
+  [docs issue](https://github.com/Ourea-Technologies/ourea-docs/issues/new?template=docs.yml).
+  Small fixes can go straight to a pull request on
+  [ourea-docs](https://github.com/Ourea-Technologies/ourea-docs).
+- **A broken example:** report it with the
+  [broken example form](https://github.com/Ourea-Technologies/ourea-docs/issues/new?template=broken_example.yml).
+  The SDK examples shown here are copied from each SDK repository's
+  `examples/`, so fixes to those go to the SDK.
+- **SDK code:** each SDK's `CONTRIBUTING.md` gets you from clone to a passing
+  local check in a few commands. Issues labelled `good first issue` are a good
+  place to start.
+
+New issues and pull requests get a first response within a few business
+days. Contributors are credited by GitHub handle in each project's
+changelog.
+
+<Aside type="caution" title="Security reports are private">
+Never report a vulnerability in a public issue or discussion. Use GitHub's
+private vulnerability reporting on the affected repository (**Security →
+Report a vulnerability**), or see [oureawx.com/security](https://oureawx.com/security).
+</Aside>

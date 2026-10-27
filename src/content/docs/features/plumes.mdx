@@ -1,0 +1,61 @@
+---
+title: "Plumes (ensemble members)"
+seoTitle: "Plumes · every ensemble member (members=true)"
+description: "Get every ensemble member's values for every hour with members=true, for spaghetti plots and plume charts, plus the members' running totals."
+sidebar:
+  order: 6
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+`members=true` adds each member's values to every hour of the series. One
+request carries every model's members for every hour:
+
+<Example task="plume" op="getLocationForecast" />
+
+- Each `timeseries[]` hour has `members`: one `{id, members}` entry per model
+  with members at that hour, in `model_run.models` order. A member is
+  identified by `(model, member_id)`; `member_id` is stable across the hours
+  of a response and across cycles.
+- A member's `precipitation` and `snowfall` are totals over its
+  `precipitation_hours` ending at `valid_time`: 1 for an hourly model, 6 for a
+  6-hourly one, which has values at every 6th hour only.
+- Every member carries its running totals, `cumulative_precipitation` and
+  `cumulative_snowfall`, over the served window, and the synoptic hours carry
+  their distribution in `members_cumulative` (computed from the members'
+  totals, never by summing hourly percentiles). Draw these served fields;
+  compute nothing.
+- Members are at `location.elevation_m`, and on each served
+  `elevation_forecasts[]` entry at its own elevation.
+- A `null` member value means that member published nothing at that hour;
+  a measured `0.0` is a dry member. They are different claims.
+
+## Plume view and full view
+
+`members_view` says which you got:
+
+| | `plume` (anonymous and Free) | `full` (Pro) |
+|---|---|---|
+| Variables | temperature, precipitation (with `precipitation_hours`), snow level, snowfall | every member variable, including wind speed, wind direction and SLR |
+
+In the plume view a `null` wind or SLR is withheld by the view, not missing.
+
+## Caching a plume
+
+The request above is the cacheable base layer: `nowcast=false` makes it
+deterministic for the life of the served cycle, so an anonymous caller gets a
+shared-cache TTL until the next expected model cycle, under a strong ETag
+(`304` on `If-None-Match`). Send its parameters in alphabetical order, as
+shown: the edge cache keys on the exact URL. Ask for the whole horizon
+(`max_hours=240`, Pro `360`). See [Caching and ETags](/features/caching/).
+
+<Aside>
+The headline total is the blend's mean, served as `snow_outlook` and the
+hourly `cumulative_*` fields, not the members' mean.
+</Aside>
+
+## Reference
+
+The `members` parameter, `MemberForecast` and `MembersCumulative` in the
+[API reference](/api/).

@@ -1,0 +1,53 @@
+---
+title: "Models and runs"
+seoTitle: "Models, per-model data and pinned runs"
+description: "Which weather models are in the Ourea blend, per-model breakdowns with models=true, the runs you can pin, and historical forecasts with run= (Pro)."
+sidebar:
+  order: 7
+---
+
+import Example from '../../../components/Example.astro';
+
+## The blend
+
+Each forecast hour is blended from up to five ensembles: ECMWF AIFS-ENS
+(`aifs`) and IFS-ENS (`ifs_ens`), and NOAA AIGEFS (`aigefs`), GEFS (`gefs`)
+and RRFS (`rrfs`). The blend is **per-model-latest**: every model contributes
+its freshest complete cycle within its staleness cap (`aifs`, `aigefs` and
+`gefs` 30 h, `ifs_ens` 36 h, `rrfs` 14 h), aligned by valid time, so the
+models are generally at different inits.
+
+`model_run` in every forecast says what was blended:
+
+- `initialized_at`: the reference init, the newest contributing model's
+  cycle. Every `lead_time_hours` counts from it.
+- `total_members`.
+- `models[]`: one `{id, cycle, members}` per contributing model, in the order
+  `aifs`, `aigefs`, `gefs`, `ifs_ens`, `rrfs`; a model added later follows. A
+  model that contributed nothing is absent. Treat unknown ids as additive.
+
+## Per-model breakdowns (Pro)
+
+`models=true` adds `model_means[]` to every hour: each model's own statistics
+(`{id, temperature, dewpoint, precipitation, wind_speed, wind_direction,
+snow_level, slr, snowfall}`), with `interpolated: true` where a 6-hourly model
+was interpolated between its native steps. A Free or anonymous caller gets
+`403 PRO_REQUIRED`.
+
+<Example task="models" op="getLocationForecast" />
+
+## Runs
+
+`GET /api/v1/runs` lists the cycles `run=` can pin (init times at least two
+models completed, newest first) and, in `served`, what a forecast serves now.
+The two differ by design: `runs[0]` can be 12Z while forecasts say 18Z,
+because one model's 18Z cycle is in and a second has not finished it. The
+route works without credentials.
+
+A pinned run (`run=<RFC 3339 init>`, Pro) serves that historical cycle, every
+model at that init, with the hourly series from its init.
+
+## Reference
+
+[`getAvailableRuns`](/api/), the `models` and `run` parameters, and
+`ModelRunInfo` in the API reference.

@@ -1,0 +1,72 @@
+---
+title: "Weather API for Java"
+seoTitle: "Weather API for Java · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Java with java.net.http: a first forecast with no key, and the ensemble-weather Maven package."
+schemaType: SoftwareSourceCode
+sdk: java
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import HttpExample from '../../../components/HttpExample.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`java.net.http` in the JDK makes the call; the JSON comes back with every hour's distribution and the probabilities you asked for. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Your first call, no SDK
+
+Run it as a single source file: `java Quickstart.java`. The JDK has no JSON parser, so this prints the body; parse it with your JSON library, or use the SDK, which brings typed models.
+
+<HttpExample lang="java" />
+
+It prints each hour's temperature range and the chance of at least 6 in of
+snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form
+(parameters in alphabetical order, literal `:` in `prob`), so anonymous calls
+share the edge cache: see [Caching and ETags](/features/caching/).
+
+## The official SDK
+
+<LanguageNotes sdk="java" />
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to the registry, the
+standard-library example above is the way to call the API from Java.
+</Aside>
+
+### Quickstart with the SDK
+
+<SdkExample sdk="java" task="quickstart" />
+
+### Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="java" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+### Storm totals
+
+<SdkExample sdk="java" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+On Android, see the [Kotlin](/weather-api/kotlin/) page.
+
+- [Getting started](/getting-started/?lang=java) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

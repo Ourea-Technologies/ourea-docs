@@ -1,0 +1,38 @@
+---
+title: "Horizon"
+seoTitle: "Horizon · max_hours, max_days, include_past"
+description: "How far ahead a forecast goes, how max_hours and max_days are counted and clamped by tier, and how to serve from the run's init with include_past."
+sidebar:
+  order: 11
+---
+
+import Example from '../../../components/Example.astro';
+
+<Example task="horizon" op="getLocationForecast" />
+
+- **The series starts now.** `forecast.timeseries` begins at the hour
+  containing the request time and runs `max_hours` past it: `max_hours=48` is
+  the current hour plus the next 48, 49 points. `lead_time_hours` still counts
+  from `model_run.initialized_at`.
+- **`max_hours`** defaults to 24 (6 to 360) and is clamped to the tier's
+  outlook: Free 240 h, Pro 360 h. The series ends where the model run ends
+  (lead 360), so near the cap fewer hours come back.
+- **`max_days`** sets the number of `daily` rows, independent of
+  `max_hours`, from the local date of forecast hour 1. Default: the tier's full
+  horizon (Free 10, Pro 15).
+- **Clamped, not refused.** The response's `applied` block says what was
+  served (`max_hours`, `max_days`) and lists in `clamped` the options the
+  server changed.
+- **`include_past=true`** serves the hourly series from the model run's init,
+  the hours already past included, for research and verification. A pinned
+  `run` is always served from its init.
+- **`hourly=false`** serves the daily rows alone; `daily=false` drops them.
+  Both false is a `400`.
+
+The `daily` rows cover whole local days either way, and `snow_outlook`'s
+windows open at the first served hour.
+
+## Reference
+
+The `max_hours`, `max_days`, `include_past` and `hourly` parameters and
+`AppliedOptions` in the [API reference](/api/).

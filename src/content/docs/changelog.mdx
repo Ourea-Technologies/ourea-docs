@@ -1,0 +1,45 @@
+---
+title: "Changelog and versioning"
+seoTitle: "Changelog, versioning and deprecation policy"
+description: "How the Ourea weather API versions its contract, how deprecations are announced and signalled, and the changes to API v1."
+---
+
+## Versioning
+
+- **v1 changes only additively.** New fields, parameters, routes, error codes
+  and enum values can appear within v1. Ignore unknown fields and treat
+  unknown enum values as "other"; treat an unknown error code by its HTTP
+  status. Breaking changes go to `/api/v2`.
+- `info.version` in the [OpenAPI spec](/openapi/v1/openapi.yaml) is the
+  contract version: 1.0.0 at the v1 lock.
+- The official SDKs are versioned independently of the API (0.x until each
+  passes its pre-1.0 review) and each README states the contract it targets.
+- The [Cap'n Proto schema](/capnp/#versioning) is append-only within v1.
+- Value precision may get finer within v1, never coarser.
+
+## Deprecation policy
+
+A deprecated field, parameter or route is **announced at least six months
+ahead**. While it is deprecated, responses that use it carry:
+
+- `Deprecation`,
+- `Sunset` (when it stops working),
+- `Link` with `rel="deprecation"` pointing at the notice.
+
+The SDKs surface these once per operation per process, through the
+language's warning channel (Python `warnings`, a logger elsewhere), with the
+`Link` URL. Nothing in v1 is deprecated today.
+
+## Changes
+
+### Contract 1.0.0
+
+The v1 contract lock: the public spec in
+[ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec)
+at `openapi/v1/openapi.yaml`.
+
+### 2026-10-19: the hourly series starts now
+
+The hourly `timeseries` starts at the current hour instead of the model run's
+init, and `max_hours` counts from it. `include_past=true` restores the old
+window. Locations carry their IANA `timezone`.

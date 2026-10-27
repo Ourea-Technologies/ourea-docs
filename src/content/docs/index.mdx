@@ -1,0 +1,62 @@
+---
+title: "Ourea probabilistic weather API"
+seoTitle: "Ourea Docs · Probabilistic weather API"
+description: "Ensemble weather forecasts for the contiguous US, served as probabilities and ranges. Make your first call in under a minute, with no signup."
+template: splash
+schemaType: WebPage
+hero:
+  tagline: "Ensemble forecasts for the contiguous United States, served as distributions and probabilities, not single numbers. Your first call takes under a minute and needs no signup."
+  actions:
+    - text: Getting started
+      link: /getting-started/
+      icon: right-arrow
+    - text: API reference
+      link: /api/
+      variant: minimal
+      attrs:
+        data-astro-reload: true
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import Example from '../../components/Example.astro';
+
+## What Ourea is
+
+Ourea serves forecasts for the contiguous United States, blended from up to five
+weather-model ensembles per forecast hour: ECMWF AIFS-ENS and IFS-ENS, and NOAA
+AIGEFS, GEFS and RRFS. It is a calibrated, post-processed blend of physics and AI
+ensembles. Every hour's full distribution is served beside its headline numbers.
+
+- **Probability first.** Each forecast value is a distribution (`mean`, `p10`,
+  `p25`, `p50`, `p75`, `p90`, and `min`/`max` where served), not one number.
+  Ask for the chance of an event with `prob=` and the server computes it from
+  every ensemble member.
+- **Server-side statistics.** Probabilities, window totals and ranges are all
+  computed on the server from the full ensemble, so every client gets the same
+  answer and nobody adds up quantiles by hand.
+- **Named places and coordinates.** Forecasts for catalog locations (ski areas,
+  passes, trailheads, towns, airports) work without a key. Forecasts at any
+  point need Pro.
+
+## Your first call, in under 60 seconds
+
+No account and no key. Copy this into a terminal:
+
+<Example task="quickstart" />
+
+The response's `forecast.timeseries[]` has each hour's temperature as quantiles
+(`p10` to `p90` is the range eight members in ten fall inside), and
+`probabilities[0]` is the chance of at least 6 in of snow in the next 24 h, with
+the window and the number of members that voted.
+
+## Where next
+
+<CardGrid>
+  <LinkCard title="Getting started" description="Setup, the free tier, API keys and the language switcher." href="/getting-started/" />
+  <LinkCard title="Probabilities" description="Ask for the chance of an event with prob=." href="/features/probabilities/" />
+  <LinkCard title="Concepts" description="What p10, p50 and p90 mean, and why you can't add them." href="/concepts/quantiles/" />
+  <LinkCard title="SDKs" description="Python, TypeScript, Go, C#, Java, Kotlin and Swift." href="/weather-api/" />
+</CardGrid>
+
+Ourea is at [oureawx.com](https://oureawx.com). Pricing is at
+[oureawx.com/pricing](https://oureawx.com/pricing).

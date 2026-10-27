@@ -1,0 +1,6 @@
+{
+  "$comment": "The limits the docs publish. horizon_hours and list_page_max are stated in the public OpenAPI spec (the max_hours and limit parameters); scripts/check-examples.mjs fails if the spec stops saying so. sustained_per_minute is the documented sustained request rate. Nothing else is published: read the RateLimit-* headers.",
+  "sustained_per_minute": 60,
+  "horizon_hours": { "free": 240, "pro": 360 },
+  "list_page_max": { "anonymous": 500, "free": 1000 }
+}

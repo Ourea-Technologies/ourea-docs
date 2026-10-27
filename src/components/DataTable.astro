@@ -1,0 +1,26 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Renders a src/lib/tables.ts table (rows of inline Markdown).
+import { marked } from '../lib/inline-md';
+import type { Table } from '../lib/tables';
+interface Props {
+  table: Table;
+  rowHeaders?: boolean;
+}
+const { table, rowHeaders = true } = Astro.props;
+const showHead = table.head.some((h) => h !== '') && table.head.length > 2;
+---
+
+<table class:list={[{ 'ourea-tight': !showHead }]}>
+  {showHead && <thead><tr>{table.head.map((h) => <th set:html={marked(h)} />)}</tr></thead>}
+  <tbody>
+    {
+      table.rows.map((r) => (
+        <tr>
+          {r.map((c, i) => (i === 0 && rowHeaders ? <th scope="row" set:html={marked(c)} /> : <td set:html={marked(c)} />))}
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+{table.note && <p class="ourea-source" set:html={marked(table.note)} />}

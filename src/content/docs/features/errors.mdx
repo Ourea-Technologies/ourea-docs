@@ -1,0 +1,59 @@
+---
+title: "Errors"
+seoTitle: "Errors · codes, statuses and retries"
+description: "Every Ourea error is one JSON envelope with a machine-readable code. The codes, their HTTP statuses, and which ones to retry."
+sidebar:
+  order: 12
+---
+
+import Example from '../../../components/Example.astro';
+
+Every error is one JSON body, whatever refused the request (and also when
+you asked for `format=capnp`):
+
+```json
+{ "error": "LOCATION_NOT_FOUND", "message": "No location or/nowhere." }
+```
+
+Switch on `error`, the machine-readable code; show or log `message`. If the
+response carries `X-Request-Id`, include it when you report a problem.
+
+<Example task="errors" op="getLocationForecast" />
+
+## Codes
+
+| Category | Codes | Status | Retry? |
+|---|---|---|---|
+| Authentication | `INVALID_API_KEY`, `UNAUTHORIZED` | 401 | No: fix the key, or send none |
+| Permission | `PRO_REQUIRED`, `FORBIDDEN` | 403 | No: drop the Pro option or use a Pro key |
+| Not found | `LOCATION_NOT_FOUND`, `MODEL_RUN_NOT_FOUND`, `NOT_FOUND`, `GONE` | 404, 410 | No |
+| Invalid request | `BAD_REQUEST`, `INVALID_COORDINATES`, `INVALID_ELEVATION`, `INVALID_MAX_HOURS`, `ELEVATION_REQUIRED`, `AMBIGUOUS`, `FEELS_LIKE_UNAVAILABLE` | 400 | No |
+| Outside coverage | `OUTSIDE_COVERAGE` | 404 | No |
+| Rate limited | `TOO_MANY_REQUESTS` | 429 | Yes, after `Retry-After` |
+| Unavailable | `FORECAST_UNAVAILABLE`, `TIMEOUT`, `INTERNAL_ERROR`, `DATABASE_ERROR` | 5xx | 502, 503 and 504 yes |
+
+- **Unknown parameters are refused**, never ignored: `max_hour=48` is a
+  `400` that names the parameter and lists the route's parameters, so a typo
+  fails loudly.
+- **New codes may appear** within v1. Treat an unknown code by its HTTP
+  status.
+- **Clamps are not errors.** `max_hours` and `max_days` over the tier's
+  horizon are clamped and reported in `applied`.
+- **Errors are never cached**: every 4xx and 5xx carries
+  `Cache-Control: no-store`.
+- `TIMEOUT` (504) means the request did not finish within the server's 30 s
+  deadline; retry it.
+
+## Retries
+
+Retry connection errors, `429`, `502`, `503` and `504`, and nothing else. All
+routes are GET, so retrying is safe. The SDKs do it for you (up to 2 retries):
+
+- after a `429` or `503` with `Retry-After`, wait exactly that long (they give
+  up when it is over 60 s and return the error with the delay);
+- otherwise use full jitter: a random delay up to `min(8 s, 0.5 s × 2^(n-1))`
+  before retry `n`.
+
+## Reference
+
+`ErrorResponse` and each operation's responses in the [API reference](/api/).

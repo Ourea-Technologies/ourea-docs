@@ -1,0 +1,86 @@
+---
+title: "Location info"
+seoTitle: "Location info · elevation, timezone, catalog"
+description: "What every response says about a place (slug, state, coordinates, elevation, type, IANA timezone), elevation bands, state lists and catalog detail."
+sidebar:
+  order: 2
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+## The location reference
+
+Every response that names a place uses one shape, `LocationRef`: the
+forecast's and `/current`'s `location`, every list and nearby row, and search
+hits.
+
+| Field | Meaning |
+|---|---|
+| `slug` | The catalog slug. With `state`, the URL `/api/v1/locations/{state}/{slug}`; what a favourite stores. |
+| `state` | The lowercase USPS code. |
+| `name` | The display name. |
+| `lat`, `lon` | Coordinates, decimal degrees. |
+| `elevation_m` | Elevation in metres, whatever `units` is (0.1 m). |
+| `type` | The primary type, snake_case: `ski_area`, `trailhead`, `mountain_pass`, `summit`, `city_town`, `airport` and more. New types may appear; treat unknown ones as "other". |
+| `timezone` | The IANA zone the location's local days are kept in (`America/Los_Angeles`). `daily` dates, sunrise and sunset are computed in it; label the hourly series in it too. |
+
+Search hits and list rows add `county`; list and nearby rows add the catalog
+`description` and the location's named `elevations`.
+
+## Elevation bands
+
+Ski areas and other multi-elevation places have named points (base, mid,
+summit). Ask for their forecasts with `elevations=`: `all`, or a
+comma-separated list of the location's elevation names.
+
+<Example task="elevations" op="getLocationForecast" />
+
+Each served elevation is a full point forecast in `elevation_forecasts[]`
+(`name`, `elevation`, `lat`, `lon`, `hourly`, `daily`, `snow_outlook`), built
+by the same pipeline as the primary forecast. Each one costs roughly one extra
+forecast build, so name the elevations you show. A name the location does not
+have is a `400` listing its names. More in [Elevation](/concepts/elevation/).
+
+## Listing a state's locations
+
+`GET /api/v1/locations/{state}` lists a state's locations, ordered by slug,
+one page at a time. Pass `next_cursor` back as `cursor`, with the same `limit`
+and `type`, until it is absent.
+
+<Example task="list-locations" op="getLocations" />
+
+Without credentials a page holds at most 500 rows, with a Free key 1,000; a
+list asked without `limit` is the first such page, with `next_cursor`. Pages
+count against the hourly catalog-row budget, so a full walk of the catalog is
+not an anonymous or Free operation. For lookup, use
+[search](/features/places/#search) or [nearby](/features/places/#nearby).
+
+## Catalog detail (beta)
+
+The catalog routes serve the published location record: the row plus its
+elevations, photos, webcams and nearby stations.
+
+<Example task="catalog-detail" op="getCatalogLocation" />
+
+- `GET /api/v1/catalog/locations/{slug}` needs no credentials. A retired or
+  renamed slug answers `200` with the location it resolves to now; the body's
+  `slug` is the canonical one.
+- `include=content,template` adds published content entries and the resolved
+  page template; `locale=` (BCP-47, default `en`) picks the content's
+  language with English fallback.
+- `GET /api/v1/catalog/locations` pages with an opaque cursor; filter with
+  `admin1` (`US-OR`), `country`, `type` and `template`. `limit` defaults to
+  20 (1 to 100).
+- The station routes, `/api/v1/catalog/stations[/{slug}]`, work the same way
+  and add `network`, `capability` and `status` filters.
+
+<Aside type="note">
+The catalog routes are marked beta (`x-beta`) in the spec.
+</Aside>
+
+## Reference
+
+[`getLocations`](/api/), [`getAllLocations`](/api/),
+[`getCatalogLocation`](/api/), [`listCatalogLocations`](/api/),
+[`getCatalogStation`](/api/) and [`listCatalogStations`](/api/).

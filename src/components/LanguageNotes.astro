@@ -1,0 +1,15 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// Per-language notes (src/lib/tables.ts). Names and install commands are from
+// SDK-STANDARD.md; the minimum runtime is read from the SDK's own manifest at
+// the pinned ref; the behaviour rows are BEHAVIOR.md, which every SDK follows.
+import { languageNotes } from '../lib/tables';
+import DataTable from './DataTable.astro';
+interface Props {
+  sdk: string;
+}
+---
+
+<DataTable table={languageNotes(Astro.props.sdk)} />

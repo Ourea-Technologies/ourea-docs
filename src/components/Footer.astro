@@ -1,0 +1,27 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// Starlight's footer, plus a "found a problem?" link on every page that opens
+// the docs issue form with this page's URL filled in.
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const page = new URL(Astro.url.pathname, Astro.site).href;
+const issue = new URL('https://github.com/Ourea-Technologies/ourea-docs/issues/new');
+issue.searchParams.set('template', 'docs.yml');
+issue.searchParams.set('title', `Docs: ${Astro.locals.starlightRoute.entry.data.title}`);
+issue.searchParams.set('page', page);
+---
+
+<p class="ourea-feedback">
+  Found a problem with this page? <a href={issue.href}>Open an issue</a> · <a href="/community/">Contribute and get help</a>
+</p>
+<Default />
+
+<style>
+  .ourea-feedback {
+    margin-top: 2.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>

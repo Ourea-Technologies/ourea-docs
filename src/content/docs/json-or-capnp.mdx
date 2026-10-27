@@ -1,0 +1,109 @@
+---
+title: "JSON or Cap'n Proto: which should I use?"
+seoTitle: "JSON or Cap'n Proto: which should I use?"
+description: "An honest comparison of Ourea's JSON and Cap'n Proto bodies: decode cost, size, schema, library maturity and debugging, with the measured numbers."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../components/Example.astro';
+
+**Start with JSON unless you have a reason not to.** Every route also answers
+`format=capnp`, and the two carry the same values.
+
+## Why JSON is the default
+
+- You can read it in a browser, in curl output and in your logs.
+- Every language parses it with no extra dependency.
+- It is the easiest to debug, and it is what the official SDKs speak.
+
+## Reasons to choose Cap'n Proto
+
+- **Decode cost.** A Cap'n Proto message is read in place (zero-copy): there
+  is no parse step. That matters on mobile batteries, watches, embedded and
+  in-vehicle devices, in high-volume backends polling many points, and for
+  large bodies (240 h to 360 h horizons, plumes with every member).
+- **Size.** Smaller on the wire before compression; after Brotli or gzip the
+  gap narrows. See the [measurements](#measured-sizes).
+- **A strict, typed schema** with compile-time code generation. The schema
+  evolves only by appending, so new fields never break old readers.
+- **Completeness.** Every public route answers it, with the same auth, tiers,
+  rate limits, entitlements and cache policy. Choosing it never costs a
+  feature.
+
+## Reasons not to
+
+- **Libraries vary by language.** The reference C++ library and the Rust crate
+  are mature; Go's is maintained but pre-1.0; Java and Kotlin need a code
+  generator built from source; the JavaScript and C# options are young or
+  stale; Swift has no maintained library. The
+  [library matrix](/capnp/#libraries) has the details.
+- **Browsers:** JSON is simpler. Cap'n Proto in JavaScript works but adds a
+  dependency.
+- **Debugging:** a binary body needs the schema to inspect. `capnp decode`
+  does it:
+  ```bash
+  curl -sS --compressed 'https://api.oureawx.com/api/v1/locations/or/mt-hood-meadows?format=capnp' \
+    | capnp decode ourea.capnp ForecastResponse
+  ```
+- **Overhead:** you ship and update the published schema
+  ([/schema/v1/ourea.capnp](/schema/v1/ourea.capnp)), versioned with v1.
+- **Optional fields** use a sibling flag (`hasFoo` beside `foo`); a reader
+  must check it, including `hasUnits` before trusting `units`.
+
+## The same everywhere
+
+- Auth, tiers, error codes (errors stay JSON, even for `format=capnp`), units,
+  ETag/304 and CDN caching.
+- The values: identical numbers, because the server computes everything and
+  builds both bodies from the same response.
+
+## Side by side
+
+The same request in both formats: switch between the **curl** and
+**Cap'n Proto** tabs.
+
+<Example task="quickstart" op="getLocationForecast" />
+
+## Measured sizes
+
+<Aside type="caution" title="Pre-fix baseline, not the v1 answer">
+These numbers were measured on Ourea's development server on 2026-10-22,
+**before** two changes that affect them: fixed precision for every value, and
+gzip compression of Cap'n Proto bodies (they were not compressed under
+gzip). They are
+published so the comparison is honest, not as the v1 result.
+</Aside>
+
+**240 h forecast, anonymous, development server v0.1414.0, 2026-10-22:**
+
+| Format | Raw | gzip | Brotli |
+|---|---|---|---|
+| JSON | 925 KB | 272 KB | 278 KB |
+| Cap'n Proto | 397 KB | 397 KB (not compressed: a known bug) | 199 KB |
+
+**24 h forecast, development server, Brotli, 2026-10-22:** Cap'n Proto
+25.6 KB, JSON 32.9 KB.
+
+### To be re-measured on v1, with both fixes
+
+<Aside type="note" title="Not measured yet">
+This table is filled in after v1 is re-measured with both fixes. No number
+appears here until it has been measured.
+</Aside>
+
+| Body | Format | Identity | gzip | Brotli | Server TTFB (edge hit / miss) | Client decode time and peak memory |
+|---|---|---|---|---|---|---|
+| 360 h default (Pro) | JSON, Cap'n Proto | pending | pending | pending | pending | pending |
+| 360 h `members=true` (Pro) | JSON, Cap'n Proto | pending | pending | pending | pending | pending |
+| 240 h | JSON, Cap'n Proto | pending | pending | pending | pending | pending |
+| 24 h | JSON, Cap'n Proto | pending | pending | pending | pending | pending |
+
+Client decode measurements are planned for Rust, Python, TypeScript (browser
+and Node.js), Swift, Kotlin and C#.
+
+## RPC
+
+The Cap'n Proto schema also defines a `WeatherService` RPC interface. It is
+not a public endpoint: the public binary path is `format=capnp` over HTTPS.
+
+Next: the [Cap'n Proto guide](/capnp/).

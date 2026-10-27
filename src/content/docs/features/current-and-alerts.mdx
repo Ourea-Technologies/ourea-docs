@@ -1,0 +1,71 @@
+---
+title: "Current conditions and alerts"
+seoTitle: "Current conditions, alerts and storm reports"
+description: "Nowcast-blended current conditions, nearby sensor readings, active NWS alerts by location or coordinates, and storm report cards."
+sidebar:
+  order: 9
+---
+
+import Example from '../../../components/Example.astro';
+
+<Example task="current-and-alerts" op="getCurrentConditions" />
+
+## `/current`
+
+`GET /api/v1/locations/{state}/{slug}/current` works without credentials.
+
+- `current`: "right now" as one flat object, read from the served hour nearest
+  the request time: `temperature`, `feels_like`, `condition`,
+  `condition_text`, `condition_icon`, `wind_speed`, `wind_gust`,
+  `wind_direction`, `relative_humidity`, `dewpoint`, `precip_probability`,
+  and `source` (`nowcast` when a live observation carried weight, `model` when
+  none did), plus the anchoring `station` when there was one. It is `null` when
+  no cycle is servable.
+- `sensors[]`: each nearby sensor's latest readings (within 25 km, from the
+  last 3 hours), in your units under plain names: `temperature`, `dewpoint`,
+  `wind_speed`, `wind_gust`, `pressure`, `precipitation`, `visibility`,
+  `snow_depth`, `swe`, `swe_percent_of_median`, `pavement_temp` and more,
+  each present only where the sensor takes it. With `station_id`, `name`,
+  `source` (the network) and `observation_time`.
+- `alerts[]`, `alerts_as_of`: the active alerts, also on `/alerts`.
+- `include=nowcast_hours` adds the live forecast band
+  ([Nowcast](/features/nowcast/)).
+- `sources` and `exclude_sources` choose observation networks (`snotel`,
+  `raws`, `nws`, `ski_resort` and more).
+
+A forecast's `nearest_sensors[]` lists the nearby sensors ranked by an
+elevation-weighted distance (`effective_distance_km` = `distance_km` +
+elevation difference in metres / 100).
+
+## Alerts
+
+`GET /api/v1/locations/{state}/{slug}/alerts` returns the active NWS watches,
+warnings and advisories for the location, matched by NWS zone and, for
+convective products, by warning polygon: `id`, `event`, `severity`,
+`urgency`, `headline`, `onset`, `expires`, `ends`. Alerts are ingested about
+every 2 minutes and served `Cache-Control: private, no-cache` with an `ETag`:
+safety data never sits in a shared cache, and a poll of unchanged alerts is a
+`304` with no body.
+
+## At coordinates (Pro)
+
+`/api/v1/current?lat&lon` and `/api/v1/alerts?lat&lon` return the same bodies
+for any point, resolved exactly as [`/forecast`](/features/places/#coordinates-pro)
+resolves it. Free and anonymous callers get `403 PRO_REQUIRED`.
+
+<Example task="current-and-alerts-coordinates" op="getCurrentByCoordinates" />
+
+## Storm reports
+
+`GET /api/v1/storm-reports` lists verified storm "report cards", one per
+completed event where both forecast and observed totals have landed: forecast
+and observed totals, the best-performing model and its lead time, a composite
+skill score and a headline. It works without credentials.
+
+<Example task="storm-reports" op="getStormReports" />
+
+## Reference
+
+[`getCurrentConditions`](/api/), [`getLocationAlerts`](/api/),
+[`getCurrentByCoordinates`](/api/), [`getAlertsByCoordinates`](/api/) and
+[`getStormReports`](/api/).

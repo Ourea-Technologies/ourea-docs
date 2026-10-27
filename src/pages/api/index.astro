@@ -1,0 +1,86 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The API reference, rendered in the browser by Scalar from the public
+// OpenAPI file this site serves (/openapi/v1/openapi.yaml, a pinned copy of
+// ensemble-weather-spec). Try-it is off: v1 is the production API, and the
+// reference never sends a request or asks for a key.
+const title = 'API reference · Ourea Docs';
+const description = 'The Ourea Weather API v1 reference: every route, parameter, response schema and error code, generated from the public OpenAPI spec.';
+const canonical = new URL('/api/', Astro.site).href;
+const config = {
+  url: '/openapi/v1/openapi.yaml',
+  hideTestRequestButton: true,
+  hideClientButton: true,
+  withDefaultFonts: false,
+  telemetry: false,
+  showDeveloperTools: 'never',
+  persistAuth: false,
+  documentDownloadType: 'yaml',
+  metaData: { title },
+};
+const breadcrumb = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Ourea Docs', item: 'https://docs.oureawx.com/' },
+    { '@type': 'ListItem', position: 2, name: 'API reference', item: canonical },
+  ],
+};
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'API reference',
+  name: 'API reference',
+  description,
+  url: canonical,
+  inLanguage: 'en',
+  author: { '@type': 'Organization', name: 'Ourea Technologies', url: 'https://oureawx.com' },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content="API reference" />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Ourea Docs" />
+    <meta property="og:image" content="https://docs.oureawx.com/og/api-reference.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://docs.oureawx.com/og/api-reference.png" />
+    <link rel="alternate" type="application/yaml" href="/openapi/v1/openapi.yaml" title="OpenAPI 3.1" />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} />
+    <script type="application/ld+json" set:html={JSON.stringify(article)} />
+    <style>
+      body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      .bar { display: flex; gap: 1rem; align-items: center; padding: 0.6rem 1rem; border-bottom: 1px solid #d0d7de; font-size: 0.9rem; }
+      .bar a { color: #146a9c; }
+      noscript p { padding: 1rem; }
+    </style>
+  </head>
+  <body>
+    <nav class="bar" aria-label="Site">
+      <a href="/">Ourea Docs</a>
+      <a href="/getting-started/">Getting started</a>
+      <a href="/openapi/v1/openapi.yaml">OpenAPI (YAML)</a>
+      <a href="https://oureawx.com">oureawx.com</a>
+    </nav>
+    <noscript><p>The interactive reference needs JavaScript. The contract itself is <a href="/openapi/v1/openapi.yaml">openapi.yaml</a>.</p></noscript>
+    <div id="app"></div>
+    <script src="/scalar/standalone.js" is:inline></script>
+    <script is:inline define:vars={{ config }}>
+      Scalar.createApiReference('#app', config);
+    </script>
+  </body>
+</html>

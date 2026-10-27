@@ -1,0 +1,45 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// One docs task in every language and transport, as synced tabs (syncKey
+// "lang": choosing a tab switches every group on the page, and ?lang= in
+// the URL deep-links it). The code is the example file itself.
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
+import { tabsFor, taskInfo, type Task } from '../lib/examples';
+
+interface Props {
+  task: Task;
+  /** The operationId this task calls, named beside the API reference link. */
+  op?: string;
+}
+const { task, op } = Astro.props;
+const tabs = tabsFor(task);
+const info = taskInfo(task);
+---
+
+<div class="ourea-example" data-task={task}>
+  {info.pro && <p class="ourea-example__pro">Needs a Pro API key (<a href="/features/auth-and-tiers/">tiers</a>).</p>}
+  <Tabs syncKey="lang">
+    {
+      tabs.map((t) => (
+        <TabItem label={t.label}>
+          {t.code ? (
+            <Code code={t.code} lang={t.hl} title={t.path?.split('/').slice(-2).join('/')} />
+          ) : (
+            <p class="ourea-example__placeholder">{t.placeholder}</p>
+          )}
+          <p class="ourea-example__links">
+            {t.repo && <a href={t.repo}>{t.repo.replace('https://github.com/', '')}</a>}
+            {t.repo && ' · '}
+            {t.sourceUrl && <a href={t.sourceUrl}>this example's source</a>}
+            {t.sourceUrl && ' · '}
+            {t.slug === 'capnp' && <a href="/capnp/">Cap'n Proto guide</a>}
+            {t.slug === 'capnp' && ' · '}
+            <a href="/api/" data-astro-reload>API reference{op && <>: <code>{op}</code></>}</a>
+          </p>
+        </TabItem>
+      ))
+    }
+  </Tabs>
+</div>

@@ -1,0 +1,16 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Renders src/data/faq.ts; the same list is the page's FAQPage JSON-LD.
+import { marked } from '../lib/inline-md';
+import { FAQ } from '../data/faq';
+---
+
+{
+  FAQ.map((f) => (
+    <section class="ourea-faq">
+      <h2 id={f.q.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}>{f.q}</h2>
+      <p set:html={marked(f.a)} />
+      {f.link && <p><a href={f.link.href}>{f.link.text}</a></p>}
+    </section>
+  ))
+}

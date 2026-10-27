@@ -1,0 +1,35 @@
+# Cache policy for the Workers static-assets deploy of docs.oureawx.com.
+#
+# /_astro/* and /pagefind/* fragments are content-hashed by the build: a URL
+# never changes content, so cache them for a year. Everything else (HTML, the
+# Markdown alternates, llms.txt, the OpenAPI file, the schema, OG images) keeps
+# a short TTL so a deploy shows up within minutes. Rules that match one path
+# merge, so each long-lived rule first detaches (`! Cache-Control`) the
+# short default before setting its own.
+/*
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/_astro/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/pagefind/fragment/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/pagefind/index/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/scalar/*
+  ! Cache-Control
+  Cache-Control: public, max-age=3600
+
+/schema/v1/ourea.capnp
+  Content-Type: text/plain; charset=utf-8
+
+/openapi/v1/openapi.yaml
+  Content-Type: application/yaml; charset=utf-8
+  Access-Control-Allow-Origin: *

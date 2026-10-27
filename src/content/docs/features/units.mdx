@@ -1,0 +1,42 @@
+---
+title: "Units"
+seoTitle: "Units · metric, imperial and kelvin"
+description: "Choose metric, imperial or kelvin with units=. The server converts every value; the body always says which system it is in."
+sidebar:
+  order: 10
+---
+
+import Example from '../../../components/Example.astro';
+
+`units=` sets the unit system of every value in the response:
+
+| `units` | Temperature | Precipitation, snowfall | Wind | Elevation, snow level |
+|---|---|---|---|---|
+| `metric` (default) | °C | mm | m/s | m |
+| `imperial` | °F | in | mph | ft |
+| `kelvin` | K | mm | m/s | m |
+
+<Example task="units" op="getLocationForecast" />
+
+- **The server converts; your code doesn't.** To show another unit system,
+  ask for it. The SDKs never convert response values.
+- **The body says which.** Every forecast has `units`, so a cached or shared
+  body says whether `32.0` is °F or °C.
+- **Thresholds are in the request's units.** `prob=snowfall:ge:6.000:24h`
+  means 6 in only with `units=imperial`; on a metric request write
+  `152.40`. The SDKs convert a threshold you give with an explicit unit, with
+  exact factors (1 in = 25.4 mm, 1 ft = 0.3048 m, 1 mph = 0.44704 m/s).
+- **Some fields are fixed.** `elevation_m` is always metres, `distance_km`
+  always kilometres; `elevation_m` on `/forecast` is sent in metres whatever
+  `units` is. Pressure is hPa (metric, kelvin) or inHg (imperial); relative
+  humidity and cloud cover are percent; CAPE is J/kg.
+- **Defaults are omitted.** Don't send `units=metric`: it is the default, and
+  the canonical URL leaves it out.
+- **Cap'n Proto** bodies are in the request's units too, except search, which
+  is metric.
+
+More in [Units, the concept](/concepts/units/).
+
+## Reference
+
+`UnitSystem` in the [API reference](/api/).

@@ -1,0 +1,42 @@
+---
+title: "An ensemble weather API"
+seoTitle: "Ensemble weather API · members and plumes"
+description: "Ourea blends ECMWF and NOAA ensembles and serves every member, every hour, plus calibrated quantiles and per-model breakdowns over one API."
+---
+
+import Example from '../../../components/Example.astro';
+
+An ensemble forecast is many runs of a weather model from slightly different
+starting points. Where the runs agree, the forecast is confident; where they
+spread, it isn't. Ourea is an ensemble API end to end.
+
+## The blend
+
+Each forecast hour is blended from up to five ensembles: **ECMWF AIFS-ENS**
+and **IFS-ENS**, and **NOAA AIGEFS**, **GEFS** and **RRFS**. Each model
+contributes its freshest complete cycle (per-model-latest), aligned by valid
+time; `model_run.models` names every contributing model, its cycle and its
+member count. The blend is calibrated: it is a post-processed blend of
+physics and AI ensembles, not a single model. [Models and runs](/features/models/).
+
+## Every member, every hour
+
+`members=true` serves each member's values at every hour, keyed by model and
+member id, with each member's running precipitation and snowfall totals:
+
+<Example task="plume" op="getLocationForecast" />
+
+Anonymous and Free callers get the plume view (temperature, precipitation,
+snow level, snowfall); Pro gets every member variable.
+[Plumes](/features/plumes/).
+
+## Summaries computed from the members
+
+- Quantiles for every variable at every hour and day.
+- Probabilities for your events (`prob=`), counted member by member.
+- Window totals (`totals=`) from each member's own total.
+- Per-model breakdowns (`models=true`, Pro).
+
+## Try it
+
+Named locations need no key: [Getting started](/getting-started/).

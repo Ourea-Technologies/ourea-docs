@@ -1,0 +1,68 @@
+---
+title: "Why you can't add quantiles"
+seoTitle: "Why you can't add forecast quantiles"
+description: "A worked example showing why summing hourly p90 snowfall gives the wrong storm total, and how to get the right one from the server."
+sidebar:
+  order: 2
+---
+
+import Example from '../../../components/Example.astro';
+
+A storm total's range is **not** the sum of the hourly ranges. Percentiles do
+not add: the 90th percentile of a total is not the sum of the 90th
+percentiles of its parts. Only the mean adds.
+
+## A worked example
+
+Ten members forecast snowfall at one place over three hours. Every member but
+one expects 2 in in all, but they disagree about **when** it falls:
+
+| Member | Hour 1 | Hour 2 | Hour 3 | Total |
+|---|---|---|---|---|
+| 1 | 2 | 0 | 0 | 2 |
+| 2 | 0 | 2 | 0 | 2 |
+| 3 | 0 | 0 | 2 | 2 |
+| 4 | 2 | 0 | 0 | 2 |
+| 5 | 0 | 2 | 0 | 2 |
+| 6 | 0 | 0 | 2 | 2 |
+| 7 | 1 | 1 | 0 | 2 |
+| 8 | 0 | 1 | 1 | 2 |
+| 9 | 1 | 0 | 1 | 2 |
+| 10 | 0 | 0 | 0 | 0 |
+
+Each hour's values, sorted, are `0 0 0 0 0 0 1 1 2 2`, so every hour has
+p10 = 0, p50 = 0 and p90 = 2 in (percentiles by linear interpolation between
+members, as the server computes them).
+
+| | Sum of the hourly percentiles | Percentile of the members' totals |
+|---|---|---|
+| p10 | 0 + 0 + 0 = **0 in** | **1.8 in** |
+| p50 | 0 + 0 + 0 = **0 in** | **2 in** |
+| p90 | 2 + 2 + 2 = **6 in** | **2 in** |
+
+Summing hourly p90s says "could reach 6 in"; no member has more than 2 in.
+Summing hourly medians says "most likely nothing"; nine members in ten have
+2 in. Both answers are wrong, in opposite directions, and the error grows
+with the length of the window and with timing uncertainty, which is exactly
+when a storm total matters.
+
+The mean is the exception: it does add. The hourly means are 0.6, 0.6 and
+0.6, and the total's mean is 1.8 in. That is why the headline running totals
+(`snow_outlook.next_24h`, `cumulative_snowfall`) are sums of hourly means,
+while their **ranges** are computed from each member's own total.
+
+## The right way: ask the server
+
+The server has every member, so it computes each member's own total over your
+window and returns that distribution:
+
+<Example task="storm-total" op="getLocationForecast" />
+
+The same rule holds for probabilities: the chance of at least 6 in over 72 h
+is not built from hourly probabilities either. Ask for it with
+[`prob=`](/features/probabilities/), and the server counts members whose own
+72 h total reaches 6 in.
+
+The SDKs follow this rule: they never sum, average or interpolate quantiles.
+A helper that seems to need client-side math is a request for a new server
+query.

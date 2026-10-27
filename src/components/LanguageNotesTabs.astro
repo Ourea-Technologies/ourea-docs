@@ -1,0 +1,32 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Every SDK's notes as synced tabs (the same "lang" switcher as the examples).
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+import { SDKS, TRANSPORTS } from '../lib/languages.mjs';
+import LanguageNotes from './LanguageNotes.astro';
+---
+
+<Tabs syncKey="lang">
+  <TabItem label={TRANSPORTS[0].label}>
+    <p>
+      Plain HTTPS GET with any client. Send your key as <code>X-API-Key</code> (or nothing, for anonymous Free access). Responses are JSON, metric by
+      default, with an <code>ETag</code>; errors are <code>{'{"error": "<CODE>", "message": "..."}'}</code>. Retry 429, 502, 503 and 504 after
+      <code>Retry-After</code>. See <a href="/features/errors/">errors</a>, <a href="/features/rate-limits/">rate limits</a> and
+      <a href="/features/caching/">caching</a>.
+    </p>
+  </TabItem>
+  <TabItem label={TRANSPORTS[1].label}>
+    <p>
+      Add <code>format=capnp</code> to any route: one standard (unpacked) Cap'n Proto message, <code>Content-Type: application/x-capnp</code>, rooted
+      at the route's response struct in <a href="/schema/v1/ourea.capnp">ourea.capnp</a>. Same values, auth, rate limits and caching as JSON; errors
+      stay JSON. See the <a href="/capnp/">Cap'n Proto guide</a>.
+    </p>
+  </TabItem>
+  {
+    SDKS.map((s) => (
+      <TabItem label={s.label}>
+        <LanguageNotes sdk={s.slug} />
+      </TabItem>
+    ))
+  }
+</Tabs>

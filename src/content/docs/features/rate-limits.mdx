@@ -1,0 +1,60 @@
+---
+title: "Rate limits"
+seoTitle: "Rate limits · budgets, headers and 429s"
+description: "How Ourea budgets requests per caller, the RateLimit headers to read, what a 429 means, and how to stay inside the limits."
+sidebar:
+  order: 13
+---
+
+import Example from '../../../components/Example.astro';
+import RateLimitTable from '../../../components/RateLimitTable.astro';
+
+Every data route is budgeted per caller: per account (its sessions and keys
+share one budget), per key for a key with no account, or per client address
+without credentials (an IPv6 address by its /64). Each caller has:
+
+- a **sustained rate**: documented at **60 requests per minute**, with short
+  bursts allowed;
+- a **daily quota**, reset at 00:00 UTC;
+- an **hourly catalog-row budget** for list pages, search hits and nearby
+  rows, which caps how deep lists can be paged.
+
+<RateLimitTable />
+
+A caller that reads very many distinct locations in an hour, or walks the
+catalog in sorted order, is slowed to a few requests a minute for an hour. It
+is a throttle, never a ban. For bulk or historical access,
+[contact us](https://oureawx.com/contact).
+
+## Reading your state
+
+<Example task="rate-limits" op="getLocationForecast" />
+
+| Header | Meaning |
+|---|---|
+| `RateLimit-Limit` | The size of the budget this response counted against: the bucket's burst, or the daily quota when that is tighter |
+| `RateLimit-Remaining` | Requests left before the binding limit refuses (0 on a 429) |
+| `RateLimit-Reset` | Seconds until the binding limit is whole again |
+| `RateLimit-Policy` | Your budgets, e.g. `60;w=60` |
+
+**These headers are absent on responses a shared cache may store**
+(`Cache-Control: public`, such as an anonymous forecast or list), because the
+edge would replay one caller's budget to everyone. Credentialed responses and
+every `429` carry them.
+
+## 429 Too Many Requests
+
+Over a budget is `429` with `error: TOO_MANY_REQUESTS`, a `message` naming
+the limit (bucket, daily quota, catalog rows or scrape throttle) and
+`Retry-After` in seconds. Wait that long, then retry. A refusal is never
+edge-cached.
+
+## Staying inside the limits
+
+- Let the edge cache answer: anonymous requests to canonical URLs share cache
+  entries, and a cache hit never reaches the server.
+- Revalidate with `If-None-Match` instead of refetching
+  ([Caching and ETags](/features/caching/)).
+- Ask for the rows you show: [nearby](/features/places/#nearby) instead of a
+  state list, `hourly=false` for daily views.
+- Read the headers rather than hard-coding limits; they may change.

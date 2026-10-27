@@ -1,0 +1,131 @@
+---
+title: "Getting started"
+seoTitle: "Getting started with the Ourea weather API"
+description: "Make an anonymous forecast call, learn what the free tier includes, get an API key, and pick curl, Cap'n Proto or an SDK for your language."
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import Example from '../../components/Example.astro';
+import LanguageNotesTabs from '../../components/LanguageNotesTabs.astro';
+import RateLimitTable from '../../components/RateLimitTable.astro';
+import TierTable from '../../components/TierTable.astro';
+
+Ourea is a probabilistic weather API for the contiguous United States. Each
+forecast hour is blended from up to five ensembles (ECMWF AIFS-ENS and IFS-ENS,
+NOAA AIGEFS, GEFS and RRFS), and every value comes with its distribution:
+quantiles, probabilities and window totals computed on the server from every
+member.
+
+## Setup
+
+<Steps>
+
+1. **Make a call with no key.** Forecasts, current conditions and alerts for a
+   named location answer without credentials, at the Free tier:
+
+   <Example task="quickstart" op="getLocationForecast" />
+
+2. **Pick your language.** The tabs above switch every example on the site:
+   curl, Cap'n Proto, or one of the official SDKs. Your choice is kept in the
+   URL (`?lang=python`), so a link opens on the same tab. The
+   [per-language notes](#per-language-notes) below cover install, runtime,
+   errors, retries and caching.
+
+3. **Get a key when you need one**: for your own rate budget, or for Pro
+   features such as [forecasts at coordinates](/features/places/). See
+   [Get an API key](#get-an-api-key).
+
+</Steps>
+
+## The free tier
+
+You can use Ourea without signing up. Requests without credentials are
+served at the **Free** tier, and so are requests with a Free API key. The
+difference between the two is whose budget a request counts against: an
+anonymous request counts against your client address, a keyed one against
+your account.
+
+<TierTable />
+
+"Latest run only" is literal: the Free tier serves the newest blend, and a
+pinned historical `run=` needs Pro. `max_hours` and `max_days` above the
+tier's horizon are **clamped, not refused**: the response's `applied` block
+says what was served and lists the options the server changed.
+
+### Rate limits
+
+The documented sustained limit is **60 requests per minute**. Short bursts
+are allowed, and a daily quota and an hourly budget of catalog rows (list
+pages, search hits and nearby rows) also apply.
+
+<RateLimitTable />
+
+A caller that reads very many distinct locations in an hour, or walks the
+catalog in sorted order, is slowed to a few requests a minute for an hour: a
+throttle, never a ban. Details are on [Rate limits](/features/rate-limits/).
+
+### Attribution
+
+Forecast, current-conditions and alert responses carry an `attribution` block
+naming the data sources that response drew on, and a
+`Link: </api/v1/attribution>; rel="license"` header. ECMWF data are CC BY 4.0
+and served modified: **if you redistribute Ourea output, carry
+`attribution.credit` with it.** `GET /api/v1/attribution` lists every source
+with its licence and required notices.
+
+## Upgrade to Pro
+
+Pro adds forecasts, current conditions and alerts at any coordinate in the
+coverage area, the full 15-day (360 h) horizon, per-model breakdowns
+(`models=true`), every member variable in plumes, pinned historical runs and
+a larger rate budget. Compare plans and upgrade at
+[oureawx.com/pricing](https://oureawx.com/pricing); your subscription is
+managed from your account.
+
+## Get an API key
+
+<Steps>
+
+1. Create an account at [oureawx.com/register](https://oureawx.com/register).
+2. Open [oureawx.com/account](https://oureawx.com/account) and create a key
+   under **API keys**. The key is shown once, when it is created: copy it
+   then.
+3. Send it in the `X-API-Key` header:
+
+   <Example task="api-key" op="getLocationForecast" />
+
+</Steps>
+
+### Key hygiene
+
+- **Keep it in the environment.** Every official SDK reads `OUREA_API_KEY`
+  when you don't pass a key, and the examples on this site do the same.
+- **Never ship it in client-side code.** A key in a web page, a browser
+  extension or a mobile app binary is readable by anyone who has it. Call
+  Ourea from your server, or use anonymous requests from the client.
+- **Rotate it.** Create a new key, deploy it, then revoke the old one.
+- **An invalid key is an error, not a downgrade.** A key that is unknown,
+  revoked, or belongs to a suspended or unverified account gets
+  `401 INVALID_API_KEY`. Send no key at all for anonymous access.
+
+<Aside>
+The SDKs send no key on the routes that need none (search, catalog detail,
+attribution), so those requests share the edge cache with every other
+caller. Each SDK has an option to always send it. See
+[Caching and ETags](/features/caching/).
+</Aside>
+
+## Per-language notes
+
+<LanguageNotesTabs />
+
+## Next
+
+- [Ways to ask for a place](/features/places/): named locations, coordinates,
+  search and nearby.
+- [Probabilities](/features/probabilities/) and
+  [window totals](/features/window-totals/): the two features most clients are
+  here for.
+- [What p10, p50 and p90 mean](/concepts/quantiles/).
+- The [API reference](/api/), generated from the
+  [OpenAPI spec](/openapi/v1/openapi.yaml).

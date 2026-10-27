@@ -1,0 +1,46 @@
+---
+title: "A precipitation probability API"
+seoTitle: "Precipitation probability API"
+description: "Hourly and daily chances of precipitation with their thresholds stated, plus the chance of any amount over any window you choose."
+---
+
+import Example from '../../../components/Example.astro';
+
+"30 % chance of rain" means little until you know of how much, where and
+when. Ourea serves precipitation probabilities with their event spelled out,
+and lets you ask for your own.
+
+## Served on every forecast
+
+| Field | The event |
+|---|---|
+| hourly `ensemble.precipitation.probability` | at least a trace (0.1 mm) in the hour |
+| daily `precip_occurrence_probability` | at least 1.0 mm in the local day: "will it precipitate at all" |
+| daily `precip_probability` | at least 2.5 mm in the day: a meaningful amount |
+| daily `snow_probability` | at least 2.5 mm of snowfall in the day |
+
+Each response's `thresholds` block echoes those thresholds in your units.
+`precip_display` is the server's chosen daily headline (none, rain, snow, mix
+or freezing rain, with its chance and amount), so every client words it the
+same way.
+
+## Ask for your own
+
+Any amount, any window up to 360 h:
+
+```text
+prob=precipitation:ge:0.500:48h&units=imperial
+```
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+The server counts the share of members whose own total over the window
+reaches the threshold, and tells you how many voted.
+[Probabilities](/features/probabilities/) ·
+[What a probability refers to](/concepts/probabilities/).
+
+## Amounts with their range
+
+Pair the chance with the amount if wet (`total_precip_if_wet`), and the
+window total's range with `totals=precipitation:24h`.
+[Window totals](/features/window-totals/).

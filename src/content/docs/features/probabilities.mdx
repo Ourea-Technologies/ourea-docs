@@ -1,0 +1,78 @@
+---
+title: "Quantiles and probabilities"
+seoTitle: "Quantiles and probabilities (prob=)"
+description: "Read each value's quantiles, and ask the server for the chance of an event with prob=, for example at least 6 in of snow in the next 24 hours."
+sidebar:
+  order: 4
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+## Quantiles
+
+Every forecast statistic is one shape, `Quantiles`: `mean`, `p10`, `p25`,
+`p50`, `p75`, `p90`, and `min`/`max` where the statistic has them, in the
+request's units. Percentiles are over the ensemble members. Read
+[What p10, p50 and p90 mean](/concepts/quantiles/) before you display them.
+
+- Show a range as p10 to p90, with p50 as "most likely".
+- For precipitation and snowfall, prefer `p50` over `mean`: the mean is
+  inflated by a few wet members and over-predicts at a point.
+- Never add quantiles across hours. Ask for a
+  [window total](/features/window-totals/) instead
+  ([why](/concepts/adding-quantiles/)).
+
+## Probabilities with `prob=`
+
+Ask for the chance of an event and the server computes it from every member:
+
+```text
+prob=<variable>:<ge|le>:<threshold>:<window>[:<aggregation>]
+```
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+| Part | Values |
+|---|---|
+| `variable` | `temperature`, `wind_speed`, `snow_level`, `precipitation`, `snowfall` |
+| `op` | `ge` (at least) or `le` (at most) |
+| `threshold` | A number in the request's units, at the variable's served precision: 3 decimals for imperial precipitation and snowfall (`6.000`), 2 for metric (`152.40`), 1 for temperature and wind, 0 for snow level |
+| `window` | `<N>h` (hours 0 to N from the first served hour) or `<A>-<B>h`. `0-24h` is written `24h`. Up to 360 h |
+| `aggregation` | `total` for precipitation and snowfall (the window total; the only one allowed for them). `any` (the default: some hour meets it) or `all` (every hour) for the others. Omit the default |
+
+Each answer in `probabilities[]` is a `ProbabilityResult` that carries its own
+reference class: `variable`, `op`, `threshold`, `window_start_hours`,
+`window_end_hours`, `from`, `to`, `aggregation`, `members` (how many members
+voted) and `probability` (0 to 1). The answers come back in the order the
+terms were sent.
+
+`probability` is `null` when the served series does not reach the window's
+end: ask a larger `max_hours` to cover it (the example sends `max_hours=72`
+for its 72 h term). Treat `null` as "no answer", never as 0.
+
+### The canonical form
+
+The edge cache keys on the exact URL, so send the canonical spelling: terms
+de-duplicated and sorted by variable, then op (`ge` before `le`), then window
+(start, then end), then aggregation, then threshold; joined with a literal
+`,`, with literal `:` inside each term. The SDKs do this for you and map
+the answers back to the order you asked in.
+
+<Aside>
+Read [What a probability refers to](/concepts/probabilities/) before you show
+one: a probability means nothing without its event, threshold, place and
+window.
+</Aside>
+
+## Built-in probabilities
+
+Some probabilities are served without asking: each hour's
+`ensemble.precipitation.probability` and `ensemble.snowfall.probability`, and
+each day's `precip_probability`, `precip_occurrence_probability` and
+`snow_probability`. Their thresholds are echoed in the response's
+`thresholds` block. See [Variables](/features/variables/).
+
+## Reference
+
+The `prob` parameter and `ProbabilityResult` in the [API reference](/api/).

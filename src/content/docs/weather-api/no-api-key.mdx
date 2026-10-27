@@ -1,0 +1,53 @@
+---
+title: "A weather API with no signup and no API key"
+seoTitle: "Weather API with no signup or API key"
+description: "Call Ourea's weather API with no account and no key, from curl or any language. What works anonymously, how caching helps, and when to add a key."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+Most weather APIs make you sign up before your first request. Ourea doesn't:
+the forecast, current-conditions and alert routes for named locations answer
+requests with **no credentials at all**, and search and the catalog need none.
+Paste this into a terminal:
+
+<Example task="forecast-by-location" op="getLocationForecast" />
+
+## What works without a key
+
+| Works anonymously | Needs a Pro key |
+|---|---|
+| Forecast for a named location (`/api/v1/locations/{state}/{slug}`), to 240 h | Forecast at coordinates (`/api/v1/forecast`) |
+| `prob=` probabilities and `totals=` window totals | `models=true`, `run=` |
+| Plumes (`members=true`, plume view) | Every member variable in plumes |
+| `/current` and `/alerts` for a named location | `/current` and `/alerts` at coordinates |
+| Search, nearby (by location and by coordinate), catalog, runs, storm reports, attribution | |
+
+## Finding a place without a key
+
+Search by name, then use the hit's `state` and `slug`:
+
+<Example task="search" op="searchLocations" />
+
+## Why anonymous is fast
+
+An anonymous request to a canonical URL can be answered by the edge cache:
+every caller asking for the same place shares one cached body. Keyed requests
+are `private` and always reach the server. So for public, named-location data,
+not sending a key is often the better choice. See
+[Caching and ETags](/features/caching/).
+
+<Aside>
+Anonymous requests are budgeted per client address. If many users share one
+address (a server, a NAT), give that server a key so it has its own budget.
+</Aside>
+
+## When to add a key
+
+- You need your own rate budget rather than your network's.
+- You need Pro: coordinates, 15 days, per-model data, historical runs.
+
+Sign up at [oureawx.com/register](https://oureawx.com/register). A wrong key
+is `401 INVALID_API_KEY`, not a quiet fall-back to anonymous; to go anonymous,
+send no key.

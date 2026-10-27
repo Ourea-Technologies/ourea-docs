@@ -1,0 +1,103 @@
+---
+title: "Variables"
+seoTitle: "Variables · hourly, daily and summary fields"
+description: "Every forecast variable Ourea serves, hourly and daily, from temperature and precipitation to snow level, freezing level, wind, clouds and astronomy."
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+
+A forecast has three views of the same blend: the **hourly** series
+(`forecast.timeseries[]`), the **daily** rows (`forecast.daily[]`, local
+calendar days) and the **snow outlook** (`forecast.snow_outlook`, rolling
+windows). Almost every value is a [`Quantiles`](/concepts/quantiles/)
+object, in the request's [units](/features/units/).
+
+## Hourly: `timeseries[].ensemble`
+
+| Field | What it is | Metric / imperial |
+|---|---|---|
+| `temperature` | 2 m air temperature | °C / °F |
+| `dewpoint` | 2 m dewpoint | °C / °F |
+| `feels_like` | NWS apparent temperature: wind chill at or below 10 °C (50 °F) with wind, heat index at or above 26.7 °C (80 °F), the air temperature otherwise | °C / °F |
+| `relative_humidity` | Computed per member from its own temperature and dewpoint | % |
+| `precipitation` | The hour's total; `probability` on it is P(at least a 0.1 mm trace) | mm / in |
+| `snowfall` | Snowfall depth at the location's elevation; `probability` is the chance of measurable snow | mm / in |
+| `slr` | Snow-to-liquid ratio | ratio |
+| `snow_level` | Snow level | m / ft |
+| `wind_speed`, `wind_gust` | Sustained wind and peak gust | m/s / mph |
+| `wind_direction` | Degrees from north the wind blows from. **Circular**: read `wind_direction_circular` (mean, spread and 50 % and 90 % arcs) | degrees |
+| `cloud_cover` | Cloud cover | % |
+| `skin_temperature` | Ground or snow-surface temperature | °C / °F |
+| `mslp` | Mean sea-level pressure | hPa / inHg |
+| `cape` | Convective available potential energy | J/kg |
+
+Each hour also carries `condition` (a stable machine code such as
+`partly_cloudy`), `condition_text` (display text) and `condition_icon`;
+`is_night`; `precip_type` (`snow`, `rain`, `rain_snow_mix`, `freezing_rain`,
+with `snow_probability` and `rain_probability`); `freezing_level`;
+`inversion` when one is detected; `gust_notable` (whether the gust is worth
+showing beside the wind); and the headline running totals
+`cumulative_precipitation` and `cumulative_snowfall`.
+
+A field the blend could not serve for an hour is absent or `null`, never a
+fabricated zero. The hourly series is **not guaranteed contiguous**: key on
+`valid_time`, not on array position.
+
+## Daily: `daily[]`
+
+One row per local calendar date in `location.timezone`:
+
+- `high`, `low`, `feels_like_high`, `feels_like_low`: calendar-day maximum and
+  minimum, midnight to midnight local.
+- `total_precip`, `total_snowfall`: each member's own day total, as quantiles.
+- `precip_probability` (P(day total ≥ 2.5 mm)), `precip_occurrence_probability`
+  (P(≥ 1.0 mm), "will it precipitate at all") and `snow_probability`
+  (P(day snowfall ≥ 2.5 mm)).
+- `total_precip_if_wet`, `total_snowfall_if_wet`: the amount given a wet
+  (snowy) day.
+- `precip_display`: the server's chosen precipitation headline (`kind`,
+  `chance`, `amount`), so every client says the same thing.
+- `snow_level`, `snow_level_mean`, `cloud_cover_mean`, `wind`,
+  `storm_orientation`, `condition`, `condition_icon`, `precip_type`.
+- `astro`: `sunrise`, `sunset` (UTC), `moon_phase`, `moon_illumination`,
+  `astronomical_season`.
+- `temperature_climatology`: the seasonal normal for the date.
+
+The `thresholds` block in every forecast echoes the event behind each served
+probability, in your units, so no client hard-codes 2.5 mm.
+
+For daily views, `hourly=false` serves the daily rows alone and is a fraction
+of the payload:
+
+<Example task="daily-only" op="getLocationForecast" />
+
+## Snow outlook
+
+`forecast.snow_outlook` has `next_24h`, `next_48h`, `next_7d` and
+`overnight_4pm_9am` totals (the sum of hourly snowfall means), and
+`quantiles` with the range of each window's total, computed from every
+member's own window total. A window the forecast does not reach is `null`,
+never a shorter sum. For other windows, ask for
+[window totals](/features/window-totals/).
+
+## Opt-in diagnostics
+
+`diagnostics=provenance` adds each hour's post-processing tags (which rule
+shaped each variable) and `diagnostics=ptype` the model-native
+precipitation-type code quantiles. They are for research and verification,
+not display.
+
+<Aside type="note">
+The forecast does not serve visibility. Observation sensors that measure it
+report it on [`/current`](/features/current-and-alerts/) as `visibility`.
+UTCI (`feels_like=utci`) is named in the spec but not served yet: asking for
+it is `400 FEELS_LIKE_UNAVAILABLE`.
+</Aside>
+
+## Reference
+
+`EnsembleStats`, `TimeSeriesPoint`, `DailyForecast` and `SnowOutlook` in the
+[API reference](/api/).

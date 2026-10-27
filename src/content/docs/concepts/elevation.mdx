@@ -1,0 +1,41 @@
+---
+title: "Elevation"
+seoTitle: "Elevation in mountain weather forecasts"
+description: "Why elevation changes a mountain forecast, which elevation each Ourea forecast is computed at, and how to choose one."
+sidebar:
+  order: 4
+---
+
+In the mountains, a few hundred metres change the answer: temperature drops
+with height, the snow level decides rain or snow, and snowfall depends on
+both. Every Ourea forecast is computed **at a stated elevation**.
+
+## Which elevation
+
+- **A named location** is forecast at its primary elevation,
+  `location.elevation_m` (always metres).
+- **A multi-elevation location** (a ski area's base, mid and summit) has named
+  points; ask for their forecasts with `elevations=all` or by name, and each
+  comes back as a full forecast in `elevation_forecasts[]`. See
+  [Location info](/features/location-info/#elevation-bands).
+- **A coordinate forecast** (Pro) uses `elevation_m` when you send it (it
+  always wins), else the USGS 3DEP 1/3 arc-second (about 10 m) DEM elevation of
+  the quantized point. `point.elevation_source` says which. Where the DEM has
+  no value, the request is `400 ELEVATION_REQUIRED`: the server never guesses.
+
+## What it changes
+
+Each model's 2 m temperature and dewpoint are carried from the model's own
+terrain height to the forecast elevation. The elevation then drives the
+snow/rain phase, snowfall, and the elevation-keyed calibration. Pass
+`elevation_m` when you care about a specific height that is not the ground at
+the quantized point: a summit, a lift top, a roof.
+
+Ensemble members are reported at the same elevation as the forecast they
+belong to.
+
+## Units
+
+`elevation_m` is always metres. Elevations elsewhere (`point.elevation`,
+`elevation_forecasts[].elevation`, the snow level, the freezing level) are in
+the response's length unit: metres, or feet with `units=imperial`.

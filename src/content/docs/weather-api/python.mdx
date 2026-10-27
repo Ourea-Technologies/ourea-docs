@@ -1,0 +1,72 @@
+---
+title: "Weather API for Python"
+seoTitle: "Weather API for Python · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Python: install the SDK, make a first forecast call with no key, and ask for snow probabilities."
+schemaType: SoftwareSourceCode
+sdk: python
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import HttpExample from '../../../components/HttpExample.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+Python is the quickest way to explore an ensemble forecast: one HTTPS call returns every hour's distribution, and the server computes probabilities for you. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Your first call, no SDK
+
+Python's standard library is enough: `urllib.request` and `json`, no packages to install.
+
+<HttpExample lang="python" />
+
+It prints each hour's temperature range and the chance of at least 6 in of
+snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form
+(parameters in alphabetical order, literal `:` in `prob`), so anonymous calls
+share the edge cache: see [Caching and ETags](/features/caching/).
+
+## The official SDK
+
+<LanguageNotes sdk="python" />
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to the registry, the
+standard-library example above is the way to call the API from Python.
+</Aside>
+
+### Quickstart with the SDK
+
+<SdkExample sdk="python" task="quickstart" />
+
+### Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="python" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+### Storm totals
+
+<SdkExample sdk="python" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+For notebooks and data work, the SDK offers pandas as an optional extra; the core needs only httpx.
+
+- [Getting started](/getting-started/?lang=python) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

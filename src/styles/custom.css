@@ -1,0 +1,29 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+:root {
+  --sl-color-accent-low: #0b2a3a;
+  --sl-color-accent: #1f7fb8;
+  --sl-color-accent-high: #bfe3f7;
+}
+:root[data-theme='light'] {
+  --sl-color-accent-low: #d6eefb;
+  --sl-color-accent: #146a9c;
+  --sl-color-accent-high: #0b2a3a;
+}
+.ourea-example__placeholder {
+  border: 1px dashed var(--sl-color-gray-4);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--sl-color-gray-2);
+}
+.ourea-example__links {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.ourea-example__pro {
+  font-size: var(--sl-text-sm);
+  margin-bottom: 0.25rem;
+}
+table.ourea-tight td,
+table.ourea-tight th {
+  padding: 0.35rem 0.6rem;
+}

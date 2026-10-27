@@ -1,0 +1,8 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// The published limits (src/lib/tables.ts, from src/data/limits.json).
+import { rateLimitTable } from '../lib/tables';
+import DataTable from './DataTable.astro';
+---
+
+<DataTable table={rateLimitTable()} />

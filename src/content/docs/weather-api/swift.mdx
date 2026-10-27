@@ -1,0 +1,72 @@
+---
+title: "Weather API for Swift and iOS"
+seoTitle: "Weather API for Swift and iOS · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Swift with URLSession and Codable: a first forecast with no key, and snow probabilities, for iOS and macOS."
+schemaType: SoftwareSourceCode
+sdk: swift
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import HttpExample from '../../../components/HttpExample.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`URLSession` and `Codable` read an Ourea forecast in a few lines, on iOS, macOS or Linux. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Your first call, no SDK
+
+Run it as a script: `swift quickstart.swift`. `probability` is an optional `Double`: `nil` means no answer, never 0.
+
+<HttpExample lang="swift" />
+
+It prints each hour's temperature range and the chance of at least 6 in of
+snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form
+(parameters in alphabetical order, literal `:` in `prob`), so anonymous calls
+share the edge cache: see [Caching and ETags](/features/caching/).
+
+## The official SDK
+
+<LanguageNotes sdk="swift" />
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to the registry, the
+standard-library example above is the way to call the API from Swift.
+</Aside>
+
+### Quickstart with the SDK
+
+<SdkExample sdk="swift" task="quickstart" />
+
+### Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="swift" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+### Storm totals
+
+<SdkExample sdk="swift" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+Never embed an API key in an app binary: call anonymously or through your own backend. For a binary body, note that no maintained Swift Cap'n Proto library exists; JSON is the right choice on Apple platforms.
+
+- [Getting started](/getting-started/?lang=swift) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

@@ -1,0 +1,72 @@
+---
+title: "Weather API for C# and .NET"
+seoTitle: "Weather API for C# and .NET · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from C# with HttpClient and System.Text.Json: a first forecast with no key, and snow probabilities."
+schemaType: SoftwareSourceCode
+sdk: csharp
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import HttpExample from '../../../components/HttpExample.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+`HttpClient` and `System.Text.Json` are all a .NET app needs to read an Ourea forecast, from a console app, ASP.NET Core or a MAUI client. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Your first call, no SDK
+
+A top-level-statements console app; `dotnet run` builds and runs it.
+
+<HttpExample lang="csharp" />
+
+It prints each hour's temperature range and the chance of at least 6 in of
+snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form
+(parameters in alphabetical order, literal `:` in `prob`), so anonymous calls
+share the edge cache: see [Caching and ETags](/features/caching/).
+
+## The official SDK
+
+<LanguageNotes sdk="csharp" />
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to the registry, the
+standard-library example above is the way to call the API from C#.
+</Aside>
+
+### Quickstart with the SDK
+
+<SdkExample sdk="csharp" task="quickstart" />
+
+### Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="csharp" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+### Storm totals
+
+<SdkExample sdk="csharp" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+In a client app, call anonymously or through your own backend; keep any API key on the server.
+
+- [Getting started](/getting-started/?lang=csharp) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

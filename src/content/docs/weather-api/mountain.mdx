@@ -1,0 +1,42 @@
+---
+title: "A mountain weather API"
+seoTitle: "Mountain weather API · forecasts by elevation"
+description: "Mountain forecasts computed at the elevation you care about, for summits, passes, trailheads and ski areas across the US, with ensemble ranges."
+---
+
+import Example from '../../../components/Example.astro';
+
+Mountain weather changes with every few hundred metres. Ourea computes each
+forecast at a stated elevation and serves its uncertainty, for the places
+mountain users go.
+
+## Mountain places in the catalog
+
+The catalog includes ski areas, summits, mountain passes, trailheads,
+backcountry areas, fire lookouts, volcanoes and climbing areas, each with
+its elevation and timezone. Search by type:
+
+<Example task="search" op="searchLocations" />
+
+## Forecasts at each elevation
+
+Ski areas have named base, mid and summit points; ask for all of them with
+`elevations=all`, each a full forecast at its own elevation:
+
+<Example task="elevations" op="getLocationForecast" />
+
+With Pro, forecast any point and pass `elevation_m` for a summit, a lift top
+or a ridge. [Elevation](/concepts/elevation/).
+
+## What mountain users need
+
+- **Snow level and freezing level**, hour by hour.
+- **Wind and gusts**, with `gust_notable` for lift and ridge decisions.
+- **Inversions** and cold pools, flagged when detected.
+- **Snow totals** with ranges, and probabilities over your window.
+- **Nearby sensors**, including SNOTEL snow depth and SWE, on `/current`.
+- **NWS alerts** for the zone.
+
+## Try it
+
+No key needed for named locations. [Getting started](/getting-started/).

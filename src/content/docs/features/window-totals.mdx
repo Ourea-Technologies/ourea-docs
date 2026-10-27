@@ -1,0 +1,45 @@
+---
+title: "Window totals"
+seoTitle: "Window totals (totals=) · storm-total ranges"
+description: "Get the range of total precipitation or snowfall over any window with totals=, computed from each ensemble member's own total."
+sidebar:
+  order: 5
+---
+
+import Example from '../../../components/Example.astro';
+
+A storm total is a question about a window, not about hours. `totals=` asks
+the server for the distribution of every member's own total over a window:
+
+```text
+totals=<precipitation|snowfall>:<window>[,…]
+```
+
+<Example task="storm-total" op="getLocationForecast" />
+
+Each `window_totals[]` entry is a `WindowTotal`: `variable`,
+`window_start_hours`, `window_end_hours`, `from`, `to`, `members` and
+`quantiles`. Show it the way the NWS words snowfall ranges: "most likely
+`p50`, at least `p10`, could reach `p90`".
+
+- **How a window is counted.** A member's precipitation or snowfall value is
+  the total over the hours ending at its `valid_time`; a bucket that straddles
+  either end of the window counts its share inside. A member counts only when
+  its values cover the whole window, and a total needs at least two such
+  members.
+- **`quantiles` is `null`** when the window is not covered: ask a larger
+  `max_hours`.
+- **Windows** use the same syntax as [`prob=`](/features/probabilities/):
+  `<N>h` or `<A>-<B>h`, up to 360 h. Send the list sorted by variable, then
+  window.
+
+This is the only storm total the SDKs offer, because it is the only correct
+one: the sum of hourly p90s is not the p90 of the total. The
+[worked example](/concepts/adding-quantiles/) shows how far apart they are.
+
+The fixed windows in `forecast.snow_outlook.quantiles` (24 h, 48 h, 7 days)
+are computed the same way and come on every forecast.
+
+## Reference
+
+The `totals` parameter and `WindowTotal` in the [API reference](/api/).

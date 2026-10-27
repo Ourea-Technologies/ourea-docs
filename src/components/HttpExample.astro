@@ -1,0 +1,13 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// A language page's no-SDK quickstart: the tested file in examples/http/.
+import { Code } from '@astrojs/starlight/components';
+import { HTTP_EXAMPLES, raw } from '../lib/examples';
+interface Props {
+  lang: keyof typeof HTTP_EXAMPLES;
+}
+const ex = HTTP_EXAMPLES[Astro.props.lang];
+---
+
+<Code code={raw(ex.path)} lang={ex.hl} title={ex.path.split('/').pop()} />
+<p class="ourea-example__links">Run it with <code>{ex.run}</code>. CI runs this exact file against a mock of the API on every change.</p>

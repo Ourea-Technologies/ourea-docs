@@ -1,0 +1,50 @@
+---
+title: "Nowcast"
+seoTitle: "Nowcast · live observations over the forecast"
+description: "How the first hours blend live observations, radar and satellite into the forecast, and how to cache the base forecast and overlay the nowcast band."
+sidebar:
+  order: 8
+---
+
+import Example from '../../../components/Example.astro';
+
+A forecast has two layers.
+
+- **Layer B, the nowcast** (`nowcast=true`, the default): hours 0 to 6 are
+  blended with live observations, today's daily range is clamped to what was
+  observed, and `nearest_sensors`, gap flow and the overnight snow outlook are
+  filled in. In those hours `precipitation` mixes the forecast with what the
+  MRMS radar rain rate predicts for each hour, at full weight for the hour of
+  the scan, falling to about half an hour later and an eighth by +6 h. The
+  hour in progress and the hour just ended read what the radar has already
+  measured, where MRMS has published it. `nowcast_applied: true`.
+- **Layer A, the base forecast** (`nowcast=false`): the pure model forecast,
+  deterministic for the life of the served cycle, with no live layers
+  (`nowcast_applied: false`, `nearest_sensors` empty).
+
+If a live source does not answer in time, the forecast is served without it
+and names it in `nowcast_unavailable` (`observation`, `radar`, `cloud`,
+`nearest_sensors`): a request never waits on a slow observation read.
+
+## Base plus overlay
+
+For clients that cache, fetch the base forecast once per cycle and overlay the
+live band from `/current?include=nowcast_hours`:
+
+<Example task="nowcast" op="getCurrentConditions" />
+
+- `nowcast_hours` holds the observation-blended hours with valid times from
+  one hour before `as_of` to ten hours after, shaped like the forecast's
+  `timeseries` points. **For valid times it covers, the band wins** over the
+  cached base.
+- `model_run_initialized_at` names the cycle the band was read from: when it
+  changes, your cached base is from an older cycle, so refetch it.
+- The base layer's anonymous TTL runs to the next expected model cycle; the
+  merged default's is 60 s and `/current`'s 30 s. See
+  [Caching and ETags](/features/caching/).
+
+The default stays `nowcast=true`, permanently.
+
+## Reference
+
+The `nowcast` parameter and `CurrentResponse` in the [API reference](/api/).

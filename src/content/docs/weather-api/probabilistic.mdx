@@ -1,0 +1,47 @@
+---
+title: "A probabilistic weather forecast API"
+seoTitle: "Probabilistic weather forecast API"
+description: "Get weather forecasts as distributions and probabilities, not single numbers. Quantiles for every value and server-computed event probabilities."
+---
+
+import Example from '../../../components/Example.astro';
+
+A single-number forecast hides what the forecaster knows: how sure it is.
+Ourea serves the uncertainty as data, so your application can decide with
+it.
+
+## Every value is a distribution
+
+Each variable at each hour is a `Quantiles` object: `p10`, `p25`, `p50`,
+`p75`, `p90`, `mean`, and `min`/`max` where served. Show p10 to p90 as the
+range and p50 as the most likely value.
+[What p10, p50 and p90 mean](/concepts/quantiles/).
+
+## Probabilities for your events
+
+Name the event and the server counts the ensemble members that meet it:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+Each answer carries its reference class: the variable, `ge` or `le`, the
+threshold in your units, the window (`from`, `to`) and how many members
+voted. Ask for temperature, wind speed, snow level, precipitation or snowfall,
+over any window up to 360 h. [Probabilities](/features/probabilities/).
+
+## Why the server computes them
+
+Probabilities and totals need every member, which a client doesn't have from
+the hourly summaries. Summing hourly quantiles gives a wrong storm total
+([worked example](/concepts/adding-quantiles/)), and turning quantiles back
+into a probability is guesswork. Ourea computes them once, on the server,
+from the calibrated members, so every client gets the same answer.
+
+## Ranges over a window
+
+`totals=snowfall:72h` returns the distribution of every member's own 72-hour
+total. [Window totals](/features/window-totals/).
+
+## Free to try
+
+Named-location forecasts with probabilities need no key.
+[The free tier](/weather-api/free/).

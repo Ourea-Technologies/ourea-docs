@@ -1,0 +1,118 @@
+---
+title: "Cap'n Proto guide"
+seoTitle: "Cap'n Proto guide · format=capnp and decoding"
+description: "Get Ourea forecasts as Cap'n Proto: the published schema, format=capnp, the capnp decode CLI, and tested decoders in Rust, Python, C++ and Go."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import CapnpDecoders from '../../components/CapnpDecoders.astro';
+import Example from '../../components/Example.astro';
+
+## The schema
+
+Download the schema from this site:
+[**/schema/v1/ourea.capnp**](/schema/v1/ourea.capnp).
+
+```bash
+curl -sSO https://docs.oureawx.com/schema/v1/ourea.capnp
+```
+
+It is versioned with API v1 and only ever grows: field ordinals never change
+and fields are never deleted, so a reader built from an older copy keeps
+working against a newer server. It is the server's own schema with only its
+maintainers' comments removed: every declaration is identical, which the
+docs build checks by compiling both and comparing the schema nodes.
+
+## Asking for it
+
+Add `format=capnp` to any public route. It is a query parameter, not an
+`Accept` header, because the edge cache keys on the URL; in the canonical
+order it sorts with the other parameters (`format` before `max_hours`).
+
+- **Body:** one standard (unpacked) Cap'n Proto message, `capnp::serialize`
+  framing, `Content-Type: application/x-capnp`.
+- **Root struct:** the route's response struct.
+- **Values:** the same as the JSON body, in the request's `units` (search,
+  which takes no `units`, is metric). Timestamps are Unix seconds.
+- **Errors stay JSON**: check the status before decoding.
+- **Compression:** send `Accept-Encoding: br, gzip` (`curl --compressed`).
+
+| Route | Root struct |
+|---|---|
+| `/api/v1/locations/{state}/{slug}`, `/api/v1/forecast` | `ForecastResponse` |
+| `…/current`, `/api/v1/current` | `CurrentObservationsResponse` |
+| `…/alerts`, `/api/v1/alerts` | `AlertsResponse` |
+| `…/nearby` | `NearbyLocationsResponse` |
+| `/api/v1/nearby` | `NearbyPointResponse` |
+| `/api/v1/locations`, `/api/v1/locations/{state}` | `ListLocationsResponse` |
+| `/api/v1/search/locations` | `SearchLocationsResponse` |
+| `/api/v1/catalog/locations`, `/api/v1/catalog/stations` | `CatalogPage` |
+| `/api/v1/catalog/{locations,stations}/{slug}` | `CatalogEntry` |
+| `/api/v1/runs` | `ListRunsResponse` |
+| `/api/v1/storm-reports`, `/api/v1/storm-reports/{id}` | `StormReportsResponse`, `StormReportCard` |
+| `/api/v1/attribution` | `AttributionRegistry` |
+
+## Inspect it with `capnp decode`
+
+Install the Cap'n Proto tools (`brew install capnp`, `apt install capnproto`),
+then pipe a body through `capnp decode` with the root struct's name. Every
+feature page has a **Cap'n Proto** tab that does exactly this:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+## Reading it in code
+
+<Aside type="caution" title="Check the has-flags">
+Optional fields have a sibling flag: read `foo` only when `hasFoo` is true;
+otherwise it is zero-initialised. This matters most for `units`: the `Units`
+enum's zero value is `imperial`, while the API's default is metric, so read
+`units` only when `hasUnits` is true.
+</Aside>
+
+Each decoder below reads a message from a file or stdin, gets the
+`ForecastResponse` root and prints the same summary. CI runs all five against
+a golden test message from the Ourea server's wire-compatibility tests (synthetic values, not a real forecast) and
+diffs their output.
+
+```bash
+curl -sS --compressed -o forecast.bin \
+  'https://api.oureawx.com/api/v1/locations/or/mt-hood-meadows?format=capnp'
+```
+
+<CapnpDecoders />
+
+Large bodies (a 360 h plume) can exceed a library's default traversal limit;
+the Python, C++, Go and Kotlin decoders raise it.
+
+## Libraries
+
+| Language | Library | Status | Example here |
+|---|---|---|---|
+| C++ | [Cap'n Proto](https://capnproto.org) reference implementation | Mature | Yes |
+| Rust | [`capnp`](https://crates.io/crates/capnp) and `capnpc` (capnproto-rust) | Mature | Yes |
+| Python | [pycapnp](https://pypi.org/project/pycapnp/) 2.2.4 (wheels for CPython 3.10 to 3.14) | Maintained | Yes |
+| Go | [`capnproto.org/go/capnp/v3`](https://pkg.go.dev/capnproto.org/go/capnp/v3) v3.1.0-alpha.2 | Maintained by the Cap'n Proto project, still versioned pre-1.0 | Yes |
+| Java, Kotlin | [capnproto-java](https://github.com/capnproto/capnproto-java): runtime `org.capnproto:runtime` 0.1.16 (its last Maven release, 2023-09); code generator `capnpc-java` built from the v0.1.16 tag | Maintained but slow-moving; serialization only, no RPC. The generator has no prebuilt release and does not implement interfaces, so the example's `gen.sh` builds it and generates from a copy without the RPC interface | Yes (Kotlin) |
+| JavaScript, TypeScript | [capnp-es](https://github.com/unjs/capnp-es) 0.0.16 | Active, pre-1.0 | No |
+| C# | [Capnp.Net.Runtime](https://github.com/c80k/capnproto-dotnetcore) 1.3.118 (2020) | Stale | No |
+| Swift | None maintained | Not listed on [capnproto.org](https://capnproto.org/otherlang.html); use JSON | No |
+
+Statuses as of 2026-10-27.
+
+<Aside type="note">
+The Kotlin example reads the schema's structs through the Java bindings; the
+RPC interface it leaves out is not part of the HTTPS format.
+</Aside>
+
+<Aside type="note">
+The Go generator collides with the schema's `hasFoo` flags, so the Go
+example's `gen.sh` renames them (`hasUnits` becomes `HasUnitsFlag()`) in a
+generated copy. The published schema itself is unchanged.
+</Aside>
+
+## Versioning
+
+The schema follows the API's [versioning policy](/changelog/#versioning):
+additive within v1. Renaming a field is allowed (the wire format keys on the
+ordinal), so generated names can change between schema versions while old
+messages still decode.

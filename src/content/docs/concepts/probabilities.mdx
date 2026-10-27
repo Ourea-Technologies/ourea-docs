@@ -1,0 +1,58 @@
+---
+title: "What a probability refers to"
+seoTitle: "What a weather probability refers to"
+description: "A probability is only meaningful with its event, threshold, place and time window. How Ourea's probabilities are defined and how to word them."
+sidebar:
+  order: 3
+---
+
+"70 % chance of snow" is ambiguous until you say: snow of how much, where,
+and over what period. Most people misread a bare percentage. Every Ourea
+probability names its **reference class**, and your interface should too.
+
+## The four parts
+
+| Part | In a `ProbabilityResult` | Example |
+|---|---|---|
+| **Event and threshold** | `variable`, `op`, `threshold` (in the request's units) | snowfall ≥ 6 in |
+| **Place** | the forecast's `location` (or `point`) and its elevation | Mt. Hood Meadows, 1,661 m |
+| **Window** | `window_start_hours`, `window_end_hours`, `from`, `to` (`to` exclusive) | the next 24 h |
+| **How it was counted** | `aggregation`, `members` | the window total, 131 members |
+
+## How the server counts
+
+- Members are pooled across models, one vote each.
+- An hour is in window `A-B h` when its `valid_time` is in
+  [first + A h, first + B h), where "first" is the first served hour.
+- `any`: some hour of the window meets the threshold. `all`: every hour does.
+  `total`: the window total meets it (precipitation and snowfall, where totals
+  are counted as for [window totals](/features/window-totals/)).
+- `probability` is the share of voting members that meet it, to 0.001.
+  `members` is how many voted: for `total`, the members whose values cover the
+  whole window.
+- `null` means no answer: the served series does not reach the window's end.
+  It is never 0.
+
+## How to word it
+
+Number first, then the event, threshold, place and window:
+
+> **70 %** chance of **at least 6 in of snow** at **Mt. Hood Meadows summit**,
+> **6 pm Friday to 6 am Saturday**.
+
+- Phrase the event the way the decision is made ("at least 6 in" for a powder
+  alert); don't headline the complement.
+- If you add a word ("likely"), take it from one fixed word-to-number table,
+  always shown with the number.
+- Show the window in the location's own timezone (`location.timezone`).
+
+## Built-in probabilities
+
+The hourly `ensemble.precipitation.probability` is P(at least a 0.1 mm
+trace); the daily `precip_probability` is P(day total ≥ 2.5 mm) and
+`precip_occurrence_probability` P(≥ 1.0 mm). Each response's `thresholds`
+block names these events in your units. They are different events: a day can
+have a 60 % chance of any precipitation and a 30 % chance of a meaningful
+amount.
+
+Ask for your own events with [`prob=`](/features/probabilities/).

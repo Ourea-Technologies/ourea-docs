@@ -1,0 +1,58 @@
+---
+title: "A free weather API, and exactly what it includes"
+seoTitle: "Free weather API · what the free tier includes"
+description: "What Ourea's free tier gives you, with no signup: named-location forecasts to 10 days, probabilities, current conditions and alerts. What needs Pro."
+---
+
+import Example from '../../../components/Example.astro';
+import RateLimitTable from '../../../components/RateLimitTable.astro';
+import TierTable from '../../../components/TierTable.astro';
+
+Ourea's Free tier costs nothing and needs no signup. It is a real forecast,
+not a demo: the same calibrated ensemble blend Pro gets, with the same
+quantiles and the same server-side probabilities, for every named location in
+the catalog.
+
+<Example task="quickstart" op="getLocationForecast" />
+
+## Free, in one sentence
+
+Requests without a key, and requests with a Free key, get **forecasts for
+named locations** (ski areas, passes, trailheads, summits, towns, airports and
+more) to a **10-day (240 h) horizon** from the **latest model run**, with
+probabilities, window totals and the plume view of the ensemble members, plus
+**current conditions and NWS alerts** for those locations, **search**,
+**nearby** and the **catalog**.
+
+What Free does **not** include, plainly: forecasts, current conditions and
+alerts **at arbitrary coordinates** (`/api/v1/forecast?lat&lon` is Pro), the
+**15-day** horizon, **per-model** breakdowns, **pinned historical runs**,
+and wind and snow-ratio values in the member plumes. A Free caller asking for
+one of those gets `403 PRO_REQUIRED`, never a silently different answer.
+
+<TierTable />
+
+## Limits
+
+<RateLimitTable />
+
+Anonymous budgets are per client address; a Free key's are per account. See
+[Rate limits](/features/rate-limits/) for the headers to read.
+
+## Is a free key worth getting?
+
+The Free tier is the same with or without a key. A key gives you your own
+budget instead of your network address's, and it is the step before Pro. Get
+one at [oureawx.com/register](https://oureawx.com/register); see
+[Get an API key](/getting-started/#get-an-api-key).
+
+## When you need Pro
+
+Coordinates (any point, with elevation), 15 days, per-model data, historical
+runs, full member plumes and a larger budget: see
+[oureawx.com/pricing](https://oureawx.com/pricing).
+
+## Attribution
+
+If you redistribute Ourea output, carry the response's `attribution.credit`
+with it: ECMWF data are CC BY 4.0 and served modified.

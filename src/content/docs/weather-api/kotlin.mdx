@@ -1,0 +1,72 @@
+---
+title: "Weather API for Kotlin"
+seoTitle: "Weather API for Kotlin · Ourea quickstart"
+description: "Call the Ourea probabilistic weather API from Kotlin with java.net.http and kotlinx-serialization: a first forecast with no key, and snow probabilities."
+schemaType: SoftwareSourceCode
+sdk: kotlin
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Example from '../../../components/Example.astro';
+import HttpExample from '../../../components/HttpExample.astro';
+import LanguageNotes from '../../../components/LanguageNotes.astro';
+import SdkExample from '../../../components/SdkExample.astro';
+
+Kotlin data classes and kotlinx-serialization map an Ourea forecast directly; the HTTP call is the JDK's `java.net.http`. [Ourea](https://oureawx.com) serves ensemble forecasts for the
+contiguous United States: each value is a distribution (p10 to p90), and the
+chance of an event is computed on the server from every ensemble member.
+Named locations need **no signup and no API key**; forecasts at arbitrary
+coordinates need Pro.
+
+## Your first call, no SDK
+
+A Gradle project (`gradle run`) with one dependency, kotlinx-serialization-json. `ignoreUnknownKeys` matters: v1 only ever adds fields.
+
+<HttpExample lang="kotlin" />
+
+It prints each hour's temperature range and the chance of at least 6 in of
+snow at Mt. Hood Meadows in the next 24 hours. The URL is in canonical form
+(parameters in alphabetical order, literal `:` in `prob`), so anonymous calls
+share the edge cache: see [Caching and ETags](/features/caching/).
+
+## The official SDK
+
+<LanguageNotes sdk="kotlin" />
+
+<Aside type="note">
+The SDK's first release is 0.1.0. Until it is published to the registry, the
+standard-library example above is the way to call the API from Kotlin.
+</Aside>
+
+### Quickstart with the SDK
+
+<SdkExample sdk="kotlin" task="quickstart" />
+
+### Probabilities
+
+Several `prob` terms in one call, each answered with its event, threshold,
+window and member count:
+
+<SdkExample sdk="kotlin" task="chance-of-snow" />
+
+The same request with curl, for reference:
+
+<Example task="chance-of-snow" op="getLocationForecast" />
+
+### Storm totals
+
+<SdkExample sdk="kotlin" task="storm-total" />
+
+Never sum hourly quantiles for a storm total; ask the server
+([why](/concepts/adding-quantiles/)).
+
+## Notes
+
+In an Android app, keep any API key off the device: call anonymously or through your own backend.
+
+- [Getting started](/getting-started/?lang=kotlin) shows every example on
+  the site in this language.
+- [Probabilities](/features/probabilities/), [window totals](/features/window-totals/),
+  [plumes](/features/plumes/) and [errors](/features/errors/) cover the
+  features in depth.
+- The [API reference](/api/) documents every route.

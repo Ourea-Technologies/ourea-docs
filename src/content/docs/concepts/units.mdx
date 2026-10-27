@@ -1,0 +1,51 @@
+---
+title: "Units"
+seoTitle: "Units in a probabilistic forecast"
+description: "Why the server, not the client, converts units in Ourea, how thresholds are rounded, and how the precision of each value is fixed."
+sidebar:
+  order: 5
+---
+
+Ourea serves three unit systems: `metric` (the default: °C, mm, m/s, m),
+`imperial` (°F, in, mph, ft) and `kelvin` (metric with temperatures in K).
+How to ask is on [Units](/features/units/). This page is about why.
+
+## The server converts
+
+Every number is computed and rounded on the server in the units you asked
+for, so every client, cache and SDK shows exactly the same value, and a
+threshold you send is compared at the same precision the server serves. A
+client that converts a served value itself gets a number the server never
+sent, and can disagree with a `prob=` answer near its threshold. So clients
+never convert response values; they ask for the units they show. Every
+forecast body states its `units`.
+
+## Precision
+
+Each value is rounded to its variable's fixed precision in your units. A
+value never has more decimals than:
+
+| Quantity | Metric / kelvin | Imperial |
+|---|---|---|
+| Temperature, dewpoint, feels-like | 0.1 °C / K | 0.1 °F |
+| Wind speed and gust | 0.1 m/s | 0.1 mph |
+| Wind direction | 1° | 1° |
+| Precipitation, snowfall | 0.01 mm | 0.001 in |
+| Probability | 0.001 | 0.001 |
+| Snow level, freezing level | 1 m | 1 ft |
+| Snow-to-liquid ratio | 0.1 | 0.1 |
+| Cloud cover, relative humidity | 1 % | 1 % |
+| Mean sea-level pressure | 0.1 hPa | 0.01 inHg |
+| Elevation | 0.1 m | 0.1 ft |
+
+The precision may get finer within v1, never coarser.
+
+## Thresholds you send
+
+A `prob=` threshold is in the request's units and is rounded the same way
+before it is compared: 3 decimals for imperial precipitation and snowfall,
+2 for metric, 1 for temperature and wind, 0 for snow level, with rounding
+half away from zero. The SDKs convert a threshold you give in another unit
+with exact factors (1 in = 25.4 mm, 1 ft = 0.3048 m, 1 mph = 0.44704 m/s,
+°F = °C × 9/5 + 32, K = °C + 273.15). That converts your input; it is not
+statistics.

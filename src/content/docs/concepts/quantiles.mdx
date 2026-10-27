@@ -1,0 +1,49 @@
+---
+title: "What p10, p50 and p90 mean"
+seoTitle: "What p10, p50 and p90 mean in a forecast"
+description: "How to read an ensemble forecast's quantiles, which to show as the headline and range, and how to word them for people."
+sidebar:
+  order: 1
+---
+
+An ensemble forecast runs the weather models many times with slightly
+different starting conditions and model physics. Each run is a **member**.
+Ourea pools the members of up to five ensembles (`model_run.total_members`
+says how many), calibrates them, and summarizes every variable at every hour as
+a distribution, the `Quantiles` object:
+
+| Field | Meaning |
+|---|---|
+| `p10` | 10th percentile: one member in ten is at or below it. A realistic low end. |
+| `p25` | 25th percentile. |
+| `p50` | The median: half the members above, half below. The headline for skewed quantities such as precipitation and snowfall. |
+| `p75` | 75th percentile. |
+| `p90` | 90th percentile: one member in ten is above it. A realistic high end. |
+| `mean` | The average of the members. For precipitation and snowfall it is pulled up by a few wet members, so it is not the headline at a point. |
+| `min`, `max` | The most extreme members: often outliers. Present where the statistic has them. |
+
+Percentiles are over the ensemble members (Hyndman-Fan type 7 where computed
+from members).
+
+## How to show them
+
+- **Range:** p10 to p90. Eight members in ten fall inside it.
+- **Headline:** p50 for amounts. For temperature the median and the mean are
+  close; for precipitation, prefer p50 and pair it with a probability, because
+  the median can be 0 on a showery day when rain is still likely.
+- **Words:** use the National Weather Service's wording for ranges:
+  "Most likely 8 in, at least 4 in, could reach 14 in" (p50, p10, p90). Never
+  a bare "4-14 in".
+
+## Things that look like bugs but aren't
+
+- **Wind direction is circular.** Its quantiles describe an arc, ordered by
+  offset from the mean direction, so `max` can be numerically less than
+  `min` (a northerly hour: `min` 340, `max` 10). Read
+  `wind_direction_circular` for the mean and the 50 % and 90 % arcs. The SDKs
+  pass these through and never "fix" them.
+- **A missing field is absent, not 0.** An SDK never fills it in.
+- **The SDKs never interpolate.** A range is offered only for the pairs the
+  server serves (p10 to p90, p25 to p75).
+
+Next: [why you can't add quantiles](/concepts/adding-quantiles/).

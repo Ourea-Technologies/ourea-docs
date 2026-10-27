@@ -1,0 +1,21 @@
+{
+  // docs.oureawx.com: the Astro/Starlight static build, served from ./dist by
+  // Workers static assets. There is no worker script: every route is a file.
+  //
+  // The only public hostname is docs.oureawx.com, attached as a Worker Custom
+  // Domain by Terraform in the private ourea repository
+  // (terraform/cloudflare_docs.tf), not here.
+  // workers_dev stays off so no *.workers.dev copy of the site exists.
+  //
+  // Deploy (not from CI, and not yet): npm ci && npm run build && npx wrangler deploy
+  "name": "ourea-docs",
+  "compatibility_date": "2026-06-29",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./dist",
+    // Static site: a missing path is a real 404 (dist/404.html), never
+    // index.html, so a missing hashed asset can't be cached as HTML.
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+  },
+}
