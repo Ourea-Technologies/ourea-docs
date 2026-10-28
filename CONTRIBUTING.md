@@ -55,11 +55,14 @@ toolchains you don't have. The real API is never called by the checks.
   and re-run the sync. A task an SDK has no example for shows a "coming in
   0.1" placeholder; an SDK with no ref pinned yet has no tab and is listed
   as coming.
-- `spec/` (the vectors and `spec/openapi/v1/openapi.yaml`) comes from
+- `spec/openapi/v1/openapi.yaml` is the API server's public spec, read from
+  the server repository (`node scripts/sync-spec.mjs --server <repo>`); the
+  vectors in `spec/vectors/` come from
   [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec)
-  at `spec/VERSION` (`node scripts/sync-spec.mjs`); `public/schema/v1/` is the
-  published Cap'n Proto schema (`node scripts/sync-schema.mjs --check`
-  verifies it).
+  at `spec/VERSION`, which must carry the same server spec.
+  `public/schema/v1/` is the published Cap'n Proto schema and the `go.capnp`
+  it imports (`node scripts/sync-schema.mjs --source <repo>`; `--check`
+  verifies it). Never edit these by hand.
 
 ## Writing style
 

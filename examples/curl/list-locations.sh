@@ -18,6 +18,6 @@ cursor=$(echo "$page" | jq -r '.next_cursor // empty')
 if [ -n "$cursor" ]; then
   curl -sS --fail-with-body --compressed "$API/api/v1/locations/or?cursor=$cursor&limit=100"
 fi
-# Every location in the coverage area, every state, 500 to a page (the anonymous maximum).
-curl -sS --fail-with-body --compressed "$API/api/v1/locations?limit=500"
+# Every location in the coverage area, every state: 500 to a page by default (the anonymous maximum).
+curl -sS --fail-with-body --compressed "$API/api/v1/locations"
 echo

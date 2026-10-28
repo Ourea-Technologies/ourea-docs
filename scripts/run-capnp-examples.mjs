@@ -20,8 +20,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const capnpDir = join(root, 'examples', 'capnp');
-const fixture = join(capnpDir, 'fixtures', 'forecast_response.v9.bin');
-const expected = readFileSync(join(capnpDir, 'expected', 'forecast_response.v9.txt'), 'utf8');
+const fixture = join(capnpDir, 'fixtures', 'forecast_response.v12.bin');
+const expected = readFileSync(join(capnpDir, 'expected', 'forecast_response.v12.txt'), 'utf8');
 const BUILD_TIMEOUT_MS = 15 * 60 * 1000;
 const RUN_TIMEOUT_MS = 60 * 1000;
 

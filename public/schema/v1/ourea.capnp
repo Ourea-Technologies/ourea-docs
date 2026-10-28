@@ -21,6 +21,16 @@ $Cxx.namespace("ourea");
 # Optional fields use the sibling-bool pattern (`hasFoo` + `foo`), because
 # Cap'n Proto has no native Option type. When `hasFoo` is false the inner
 # value is zero-initialized and must be ignored.
+#
+# This file imports go.capnp (https://docs.oureawx.com/schema/v1/go.capnp,
+# go-capnp's std/go.capnp, unchanged): download it beside this file. Every
+# `hasFoo` flag carries `$Go.name("hasFooFlag")`, so capnpc-go's
+# generated `HasFoo()` for the pointer field `foo` and the flag's accessor
+# (`HasFooFlag()`) do not collide. Annotations change generated Go names
+# only; the wire format and every other language's names are untouched. A Go
+# reader adds its own `$Go.package(...)` and `$Go.import(...)`.
+
+using Go = import "go.capnp";
 
 # ── Auth ────────────────────────────────────────────────────────────
 #
@@ -33,9 +43,19 @@ struct Credentials {
 }
 
 # Unit system selector. Mirrors the REST `?units=` query parameter.
+#
+# CAUTION: the enum's zero value is `imperial`, while REST's
+# default is `metric`. An unset `units` field reads as `imperial`, so:
+#  * a response's `units` is meaningful only when its sibling `hasUnits` is
+#    true (ForecastResponse); every current server sets both. The `/current`
+#    body (CurrentObservationsResponse) always sets `units`.
+#  * a request (the internal RPC) that leaves `units` unset asks for
+#    imperial, not REST's metric default.
+# The order is fixed for v1 (enumerants key on @N); a v2 schema would put
+# REST's default first.
 enum Units {
-  imperial @0;   # °F, mph, in, ft  (default)
-  metric   @1;   # °C, m/s, mm, m
+  imperial @0;   # °F, mph, in, ft. The zero value -- NOT REST's default.
+  metric   @1;   # °C, m/s, mm, m. REST's default.
   # REST `?units=kelvin` -- metric with temperatures in K. New
   # enumerant; an older reader sees an unknown value.
   kelvin   @2;
@@ -55,7 +75,10 @@ struct ForecastRequest {
   # ── Toggles mirroring REST query params. All default to false/zero.
   includeModels       @5 :Bool;     # ?models=true (per-model breakdowns).
   includeMembers      @6 :Bool;     # ?members=true (raw per-member values).
-  showAllElevations   @7 :Bool;     # ?elevations=all (ski-area lapse forecasts).
+  # LEGACY: `elevations = ["all"]` before the `elevations`
+  # selector (@14) existed; REST has no flag, only `?elevations=all`. Still
+  # honoured, and it wins over `elevations`; new callers use `elevations`.
+  showAllElevations   @7 :Bool;
   # `includeDaily` defaults to TRUE on REST; mirror that semantically
   # by interpreting `excludeDaily=true` as the opt-out signal so the
   # Cap'n Proto bool default-false matches REST default-true.
@@ -104,8 +127,8 @@ struct LocationInfo {
   name       @0 :Text;
   lat        @1 :Float64;
   lon        @2 :Float64;
-  elevation  @3 :Float64;     # In the request's units (ft / m).
-  type       @4 :Text;        # SkiArea / Town / Trailhead / etc.
+  elevation  @3 :Float64;     # In the request's units. DEPRECATED: `elevationM`.
+  type       @4 :Text;        # Snake-case code (`ski_area`, `trailhead`, ...).
   # Multi-elevation locations (ski areas) carry one entry per named
   # point (base / mid / summit). Empty for single-elevation locations.
   elevations @5 :List(ElevationInfo);
@@ -113,6 +136,8 @@ struct LocationInfo {
   # ("America/Los_Angeles"). New ordinal; an older reader ignores it.
   timezone   @6 :Text;
   # The LocationRef fields REST serves (`name` is the display name).
+  # A coordinate forecast is no catalog place: `slug` and `type`
+  # are empty there (REST null), never an invented value.
   slug       @7 :Text;
   state      @8 :Text;
   elevationM @9 :Float64;
@@ -128,20 +153,24 @@ struct ElevationInfo {
 struct ModelRunInfo {
   initializedAt   @0 :Int64;  # Unix seconds UTC.
   totalMembers    @1 :UInt32;
-  aifsMembers     @2 :Int32;  # -1 = not contributing.
-  aigefsMembers   @3 :Int32;
-  ifsEnsMembers   @4 :Int32;
-  rrfsMembers     @5 :Int32;
-  sourceModels    @6 :Text;   # Comma-separated; matches REST.
+  # DEPRECATED: the per-model member counts, `sourceModels` and
+  # `modelCycles` predate `models` (@9), which carries each contributing
+  # model's id, cycle and member count, as REST `model_run.models` does.
+  # Still set, for older readers; new readers use `models`.
+  aifsMembers     @2 :Int32;  # -1 = not contributing. DEPRECATED: `models`.
+  aigefsMembers   @3 :Int32;  # DEPRECATED: `models`.
+  ifsEnsMembers   @4 :Int32;  # DEPRECATED: `models`.
+  rrfsMembers     @5 :Int32;  # DEPRECATED: `models`.
+  sourceModels    @6 :Text;   # Comma-separated. DEPRECATED: `models`.
   # GEFS member count. -1 = not contributing (matches the other *Members).
   # Trails by @N (logically a peer of the counts above); clients key on @N.
-  gefsMembers     @7 :Int32;
-  # REST `model_cycles`: each contributing model's OWN
-  # cycle init. The blend is per-model-latest, so these differ model to
-  # model; `initializedAt` is the newest. Empty when nothing was read.
+  gefsMembers     @7 :Int32;  # DEPRECATED: `models`.
+  # : each contributing model's OWN cycle init. The blend is
+  # per-model-latest, so these differ model to model; `initializedAt` is the
+  # newest. Empty when nothing was read. DEPRECATED: `models[].cycle`.
   modelCycles     @8 :List(ModelCycle);
-  # REST `models`, one entry per contributing model (the
-  # per-model counts and modelCycles above stay for older clients).
+  # REST `models`, one entry per contributing model. The
+  # field to read.
   models @9 :List(ModelEntry);
 }
 
@@ -153,7 +182,6 @@ struct ModelCycle {
 # Ensemble percentile bundle for one variable. Mirrors REST `StatValues`.
 # Cap'n Proto keys on @N (not declaration order), so `p50` trails the
 # original eight even though Rust declares it between p25 and p75.
-# Spread = max - min.
 struct StatValues {
   mean   @0 :Float64;
   min    @1 :Float64;
@@ -162,6 +190,9 @@ struct StatValues {
   p75    @4 :Float64;
   p90    @5 :Float64;
   max    @6 :Float64;
+  # DEPRECATED: `max - min`, which REST removed at the v1 lock
+  # (: one `Quantiles` shape). Still set, for older readers; new
+  # readers compute it from `max` and `min` if they need it.
   spread @7 :Float64;
   # Ensemble median — headline-appropriate amount for skewed precip
   # (REST `p50`). Half the members above, half below.
@@ -169,7 +200,7 @@ struct StatValues {
   # Probability of (non-zero) occurrence (REST `probability: Option`).
   # Present only on precipitation & snowfall stats; hasProbability is
   # false (and probability zero-init) for every other variable.
-  hasProbability @9 :Bool;
+  hasProbability @9 :Bool $Go.name("hasProbabilityFlag");
   probability    @10 :Float64;
 }
 
@@ -182,55 +213,64 @@ struct EnsembleStats {
   temperature       @0  :StatValues;
   precipitation     @1  :StatValues;
   windSpeed         @2  :StatValues;
+  # DEPRECATED: the LINEAR ladder of the bearings, which REST
+  # withdrew (non-monotone across north, its mean outside [min, max]). Still
+  # set, for older readers. REST `wind_direction` is the circular form:
+  # read `windDirectionCircular`.
   windDirection     @3  :StatValues;
 
-  hasFeelsLike      @4  :Bool;
+  hasFeelsLike      @4  :Bool $Go.name("hasFeelsLikeFlag");
   feelsLike         @5  :StatValues;
-  hasDewpoint       @6  :Bool;
+  hasDewpoint       @6  :Bool $Go.name("hasDewpointFlag");
   dewpoint          @7  :StatValues;
-  hasSnowLevel      @8  :Bool;
+  hasSnowLevel      @8  :Bool $Go.name("hasSnowLevelFlag");
   snowLevel         @9  :StatValues;
-  hasWindGust       @10 :Bool;
+  hasWindGust       @10 :Bool $Go.name("hasWindGustFlag");
   windGust          @11 :StatValues;
 
   # Cloud cover percentage, 0–100. REST: `cloud_cover`.
-  hasCloudCover     @12 :Bool;
+  hasCloudCover     @12 :Bool $Go.name("hasCloudCoverFlag");
   cloudCover        @13 :StatValues;
   # Snow-to-liquid ratio (unitless). REST: `slr`.
-  hasSlr            @14 :Bool;
+  hasSlr            @14 :Bool $Go.name("hasSlrFlag");
   slr               @15 :StatValues;
   # Snowfall in the request's length units. REST: `snowfall`.
-  hasSnowfall       @16 :Bool;
+  hasSnowfall       @16 :Bool $Go.name("hasSnowfallFlag");
   snowfall          @17 :StatValues;
   # Skin / ground surface temperature in the request's temperature
   # units. From IFS ENS `skt`. REST: `skin_temperature`.
-  hasSkinTemperature @18 :Bool;
+  hasSkinTemperature @18 :Bool $Go.name("hasSkinTemperatureFlag");
   skinTemperature    @19 :StatValues;
   # Model-native ECMWF ptype code (1=rain, 3=freezing rain, 5=snow,
   # 6=wet snow, 7=mixed, 8=ice pellets). REST: `ptype`.
-  hasPtype          @20 :Bool;
+  # DEPRECATED: `?diagnostics=ptype` (quantiles of type codes) is
+  # withdrawn; never set. A probability form may come later, additively.
+  hasPtype          @20 :Bool $Go.name("hasPtypeFlag");
   ptype             @21 :StatValues;
   # The wind direction as a circular distribution (REST
   # `wind_direction_circular`). New ordinals only; an old decoder reads a
   # zeroed struct with the flag false.
-  hasWindDirectionCircular @22 :Bool;
+  # REST `wind_direction` (was `wind_direction_circular`).
+  hasWindDirectionCircular @22 :Bool $Go.name("hasWindDirectionCircularFlag");
   windDirectionCircular    @23 :CircularStats;
   # Mean sea-level pressure, hPa (inHg for imperial). REST:
   # `mslp`. New ordinals only; an old decoder never sees them.
-  hasMslp           @24 :Bool;
+  hasMslp           @24 :Bool $Go.name("hasMslpFlag");
   mslp              @25 :StatValues;
   # CAPE, J/kg in every unit system. REST: `cape`.
-  hasCape           @26 :Bool;
+  hasCape           @26 :Bool $Go.name("hasCapeFlag");
   cape              @27 :StatValues;
   # Relative humidity, percent in every unit system. REST:
   # `relative_humidity`.
-  hasRelativeHumidity @28 :Bool;
+  hasRelativeHumidity @28 :Bool $Go.name("hasRelativeHumidityFlag");
   relativeHumidity    @29 :StatValues;
   # The Universal Thermal Climate Index, request's temperature
   # units, per member like `feelsLike` (REST `feels_like_utci`). Present only
   # with `ForecastRequest.feelsLike` naming "utci", which is not served yet,
   # so the flag is false today. New ordinals only.
-  hasFeelsLikeUtci  @30 :Bool;
+  # DEPRECATED: `feels_like=utci` is withdrawn until UTCI is
+  # served; never set.
+  hasFeelsLikeUtci  @30 :Bool $Go.name("hasFeelsLikeUtciFlag");
   feelsLikeUtci     @31 :StatValues;
 }
 
@@ -239,7 +279,7 @@ struct EnsembleStats {
 # arc crosses north, and its width is (to - from) mod 360.
 struct CircularStats {
   mean         @0 :Float64;   # resultant direction, degrees in [0, 360)
-  hasStddev    @1 :Bool;
+  hasStddev    @1 :Bool $Go.name("hasStddevFlag");
   stddev       @2 :Float64;   # offset-frame standard deviation, degrees
   sector50From @3 :Float64;
   sector50To   @4 :Float64;
@@ -300,42 +340,47 @@ struct ModelStats {
   temperature   @0  :StatValues;
   precipitation @1  :StatValues;
   windSpeed     @2  :StatValues;
+  # DEPRECATED: the linear ladder; read `windDirectionCircular`.
   windDirection @3  :StatValues;
-  hasDewpoint   @4  :Bool;
+  hasDewpoint   @4  :Bool $Go.name("hasDewpointFlag");
   dewpoint      @5  :StatValues;
-  hasSnowLevel  @6  :Bool;
+  hasSnowLevel  @6  :Bool $Go.name("hasSnowLevelFlag");
   snowLevel     @7  :StatValues;
-  hasSlr        @8  :Bool;
+  hasSlr        @8  :Bool $Go.name("hasSlrFlag");
   slr           @9  :StatValues;
-  hasSnowfall   @10 :Bool;
+  hasSnowfall   @10 :Bool $Go.name("hasSnowfallFlag");
   snowfall      @11 :StatValues;
   # The global ensembles publish 6-hourly, so at five lead hours out
   # of six a contributing model has nothing for the hour. New ordinals only
   # (never renumber) -- old decoders see an unset (zeroed) struct with the
   # flag absent, the status quo for them; new decoders can tell absence from
   # a real 0 via the flag.
-  hasTemperature   @12 :Bool;
-  hasPrecipitation @13 :Bool;
-  hasWindSpeed     @14 :Bool;
-  hasWindDirection @15 :Bool;
+  hasTemperature   @12 :Bool $Go.name("hasTemperatureFlag");
+  hasPrecipitation @13 :Bool $Go.name("hasPrecipitationFlag");
+  hasWindSpeed     @14 :Bool $Go.name("hasWindSpeedFlag");
+  hasWindDirection @15 :Bool $Go.name("hasWindDirectionFlag");
   # This model did not publish at this lead -- the stats above were
   # interpolated from its two bracketing native steps so the blend pools the
   # same set of contributors at every lead. New ordinal only (never renumber):
   # old decoders read the zeroed default, false, which is what every hour said
   # before this landed.
   interpolated     @16 :Bool;
+  # This model's wind direction as a circular distribution
+  # (REST `model_means[].wind_direction`). New ordinals only.
+  hasWindDirectionCircular @17 :Bool $Go.name("hasWindDirectionCircularFlag");
+  windDirectionCircular    @18 :CircularStats;
 }
 
 struct ModelMeans {
-  hasAifs   @0 :Bool;
+  hasAifs   @0 :Bool $Go.name("hasAifsFlag");
   aifs      @1 :ModelStats;
-  hasAigefs @2 :Bool;
+  hasAigefs @2 :Bool $Go.name("hasAigefsFlag");
   aigefs    @3 :ModelStats;
-  hasIfsEns @4 :Bool;
+  hasIfsEns @4 :Bool $Go.name("hasIfsEnsFlag");
   ifsEns    @5 :ModelStats;
-  hasRrfs   @6 :Bool;
+  hasRrfs   @6 :Bool $Go.name("hasRrfsFlag");
   rrfs      @7 :ModelStats;
-  hasGefs @8 :Bool;
+  hasGefs @8 :Bool $Go.name("hasGefsFlag");
   gefs    @9 :ModelStats;
 }
 
@@ -347,31 +392,31 @@ struct MemberForecast {
   # length-prefixed UTF-8 path.
   memberId         @0 :Int32;
   temperature      @1 :Float64;
-  hasPrecipitation @2 :Bool;
+  hasPrecipitation @2 :Bool $Go.name("hasPrecipitationFlag");
   precipitation    @3 :Float64;
-  hasWindSpeed     @4 :Bool;
+  hasWindSpeed     @4 :Bool $Go.name("hasWindSpeedFlag");
   windSpeed        @5 :Float64;
-  hasWindDirection @6 :Bool;
+  hasWindDirection @6 :Bool $Go.name("hasWindDirectionFlag");
   windDirection    @7 :Float64;
-  hasSnowLevel     @8 :Bool;
+  hasSnowLevel     @8 :Bool $Go.name("hasSnowLevelFlag");
   snowLevel        @9 :Float64;
-  hasSlr           @10 :Bool;
+  hasSlr           @10 :Bool $Go.name("hasSlrFlag");
   slr              @11 :Float64;
-  hasSnowfall      @12 :Bool;
+  hasSnowfall      @12 :Bool $Go.name("hasSnowfallFlag");
   snowfall         @13 :Float64;
   # A member of a 6-hourly model has NO temperature at five lead hours
   # out of six. Appended (ordinals cannot be renumbered) rather than sitting
   # beside `temperature`; read `temperature` only when this is true.
-  hasTemperature   @14 :Bool;
+  hasTemperature   @14 :Bool $Go.name("hasTemperatureFlag");
   # The hours `precipitation` covers (REST `precipitation_hours`):
   # it is the total over that span ending at this hour. Appended ordinals.
-  hasPrecipitationHours @15 :Bool;
+  hasPrecipitationHours @15 :Bool $Go.name("hasPrecipitationHoursFlag");
   precipitationHours    @16 :UInt32;
   # This member's running totals from the start of the served
   # window (REST `cumulative_precipitation` / `cumulative_snowfall`). Each present exactly when its hourly value is. Appended.
-  hasCumulativePrecipitation @17 :Bool;
+  hasCumulativePrecipitation @17 :Bool $Go.name("hasCumulativePrecipitationFlag");
   cumulativePrecipitation    @18 :Float64;
-  hasCumulativeSnowfall      @19 :Bool;
+  hasCumulativeSnowfall      @19 :Bool $Go.name("hasCumulativeSnowfallFlag");
   cumulativeSnowfall         @20 :Float64;
 }
 
@@ -384,49 +429,84 @@ struct MemberForecasts {
   gefs @4 :List(MemberForecast);
 }
 
-# The per-hour serve-path PROVENANCE tag (REST `provenance`, asked with
-# `?diagnostics=provenance`) is not carried in this format: a Cap'n Proto reader
-# must treat provenance as not reported, never as "nothing happened".
+# One hour of a forecast series.: with `?diagnostics=provenance`
+# each hour carries its serve-path provenance (`hasProvenance`/`provenance`,
+# REST `provenance`), exactly as the JSON body does; without it the pair is
+# absent (hasProvenance false), as REST omits the object.
 struct TimeSeriesPoint {
   validTime       @0 :Int64;     # Unix seconds.
   leadTimeHours   @1 :UInt32;
   isNight         @2 :Bool;
-  condition       @3 :Text;      # "Clear", "Partly Cloudy", …
+  condition       @3 :Text;      # Machine code (`partly_cloudy`); text in conditionText.
   conditionIcon   @4 :Text;      # "night_clear", "sunny", …
   ensemble        @5 :EnsembleStats;
 
   # Categorical precipitation type (rain / snow / mix / freezing rain).
   # Only meaningful when ensemble.precipitation.mean ≥ 0.1 mm.
-  hasPrecipType   @6 :Bool;
+  # REST `precipitation_type` (capnp keeps `precipType`).
+  hasPrecipType   @6 :Bool $Go.name("hasPrecipTypeFlag");
   precipType      @7 :PrecipType;
   # Inversion diagnostic — absent on most hours.
-  hasInversion    @8 :Bool;
+  hasInversion    @8 :Bool $Go.name("hasInversionFlag");
   inversion       @9 :InversionInfo;
   # Per-model breakdown when the request set `includeModels=true`.
-  hasModelMeans   @10 :Bool;
+  hasModelMeans   @10 :Bool $Go.name("hasModelMeansFlag");
   modelMeans      @11 :ModelMeans;
   # Per-member values when the request set `includeMembers=true`.
-  hasMembers      @12 :Bool;
+  hasMembers      @12 :Bool $Go.name("hasMembersFlag");
   members         @13 :MemberForecasts;
   # Freezing level. New ordinals only.
-  hasFreezingLevel @14 :Bool;
+  hasFreezingLevel @14 :Bool $Go.name("hasFreezingLevelFlag");
   freezingLevel    @15 :FreezingLevel;
   # The distribution of the members' running totals at this hour
   # (REST `members_cumulative`), present only with members, at an hour where
   # at least two members carry a running total. New ordinals only.
-  hasMembersCumulative @16 :Bool;
+  hasMembersCumulative @16 :Bool $Go.name("hasMembersCumulativeFlag");
   membersCumulative    @17 :MembersCumulative;
   # `condition` is the machine code (`partly_cloudy`); its display text.
   conditionText @18 :Text;
   # Whether the hour's gust is worth showing (REST `gust_notable`).
-  hasGustNotable @19 :Bool;
+  hasGustNotable @19 :Bool $Go.name("hasGustNotableFlag");
   gustNotable    @20 :Bool;
   # The headline running totals (REST `cumulative_precipitation`,
   # `cumulative_snowfall`): the sum of the blend's hourly means so far.
-  hasCumulativePrecipitation @21 :Bool;
+  hasCumulativePrecipitation @21 :Bool $Go.name("hasCumulativePrecipitationFlag");
   cumulativePrecipitation    @22 :Float64;
-  hasCumulativeSnowfall      @23 :Bool;
+  hasCumulativeSnowfall      @23 :Bool $Go.name("hasCumulativeSnowfallFlag");
   cumulativeSnowfall         @24 :Float64;
+  # Which correction, floor, clamp and densification branches ran
+  # at this hour (REST `provenance`, a `?diagnostics=provenance` diagnostic).
+  # Present only when the request named that diagnostic AND the hour has
+  # something to report; absent otherwise -- read absent as NOT REPORTED.
+  hasProvenance @25 :Bool $Go.name("hasProvenanceFlag");
+  provenance    @26 :HourProvenance;
+}
+
+# REST `HourProvenance` (the API reference documents each
+# list): the hour's serve-path tags, each list naming the `ensemble` fields
+# (snake_case, as REST: `temperature`, `wind_gust`, ...) a branch applied to.
+# These are observations stamped where the branch ran, not inferences. `ngr`
+# and `fallback` partition the variables the correction stage ran on: a
+# variable in neither was not corrected at this hour. An empty list is a
+# list REST omits.
+struct HourProvenance {
+  densified               @0 :Bool;        # interpolated between two native model steps
+  ngr                     @1 :List(Text);  # corrected by a fitted NGR / censored-gamma model
+  fallback                @2 :List(Text);  # widened by the inflate_around_mean fallback (no fit)
+  borrowed                @3 :List(Text);  # fits borrowed from similar supplemental stations
+  spreadFloored           @4 :List(Text);  # ladder rebuilt at the serve-time spread floor
+  floorClamped            @5 :List(Text);  # low tail truncated by the zero floor
+  spreadClampedLow        @6 :List(Text);  # fitted spread raised to the band's low edge
+  spreadClampedHigh       @7 :List(Text);  # fitted spread cut to the band's high edge
+  gustDressed             @8 :List(Text);  # a contributor's gust dressed from its mean wind
+  bucketSplit             @9 :List(Text);  # an even share of a wider accumulation
+  distributionParameters  @10 :List(Text); # a contributor supplied (mean, spread), no members
+  spreadInterpolated      @11 :List(Text); # spread interpolated from the bracketing hours
+  interpolatedContributor @12 :List(Text); # a contributor carried across leads
+  momentMatchedFamily     @13 :List(Text); # probability from a moment-matched family
+  lapseProfile            @14 :List(Text); # carried to this elevation by the hour's own lapse rate
+  lapseClimatology        @15 :List(Text); # ... by a climatological lapse rate
+  lapsePrism              @16 :List(Text); # ... by the PRISM precipitation-elevation regression
 }
 
 # One quantity's running totals across the members at an hour
@@ -447,9 +527,9 @@ struct CumulativeStats {
 # REST `members_cumulative`. A quantity fewer than two members
 # carry is absent (has* false).
 struct MembersCumulative {
-  hasPrecipitation @0 :Bool;
+  hasPrecipitation @0 :Bool $Go.name("hasPrecipitationFlag");
   precipitation    @1 :CumulativeStats;
-  hasSnowfall      @2 :Bool;
+  hasSnowfall      @2 :Bool $Go.name("hasSnowfallFlag");
   snowfall         @3 :CumulativeStats;
 }
 
@@ -470,7 +550,7 @@ struct DailyWind {
   sustainedSpeed @3 :Float64;     # peak sustained wind; == peakSpeed when isGust is false.
   # REST `peak_speed_p90`: the "gusts could reach" tail
   # beside the expected peak. Present only when isGust.
-  hasPeakSpeedP90 @4 :Bool;
+  hasPeakSpeedP90 @4 :Bool $Go.name("hasPeakSpeedP90Flag");
   peakSpeedP90    @5 :Float64;
 }
 
@@ -524,10 +604,15 @@ struct DayClimatology {
 
 struct DailyForecast {
   date              @0 :Text;        # YYYY-MM-DD, location-local.
-  condition         @1 :Text;
+  condition         @1 :Text;        # Machine code (`partly_cloudy`); text in conditionText.
   conditionIcon     @2 :Text;
   high              @3 :StatValues;
   low               @4 :StatValues;
+  # REST spells precipitation in full (`total_precipitation`,
+  # `precipitation_probability`, `precipitation_occurrence_probability`,
+  # `precipitation_type`, `total_precipitation_if_wet`,
+  # `precipitation_display`); the capnp names keep their first spelling (the
+  # lock pins names with ordinals; schema/capnp-parity-allowlist.toml maps them).
   totalPrecip       @5 :StatValues;
   precipProbability @6 :Float64;     # 0..1
   snowProbability   @7 :Float64;     # 0..1
@@ -537,20 +622,20 @@ struct DailyForecast {
 
   # Dominant precipitation kind for the day (PrecipKind). When the
   # day is dry `hasPrecipType` is false.
-  hasPrecipType     @11 :Bool;
+  hasPrecipType     @11 :Bool $Go.name("hasPrecipTypeFlag");
   precipType        @12 :PrecipKind;
   # Wind chill applied to high/low.
-  hasFeelsLikeHigh  @13 :Bool;
+  hasFeelsLikeHigh  @13 :Bool $Go.name("hasFeelsLikeHighFlag");
   feelsLikeHigh     @14 :StatValues;
-  hasFeelsLikeLow   @15 :Bool;
+  hasFeelsLikeLow   @15 :Bool $Go.name("hasFeelsLikeLowFlag");
   feelsLikeLow      @16 :StatValues;
-  hasTotalSnowfall  @17 :Bool;
+  hasTotalSnowfall  @17 :Bool $Go.name("hasTotalSnowfallFlag");
   totalSnowfall     @18 :StatValues;
-  hasCloudCoverMean @19 :Bool;
+  hasCloudCoverMean @19 :Bool $Go.name("hasCloudCoverMeanFlag");
   cloudCoverMean    @20 :Float64;    # 0..100
-  hasWind           @21 :Bool;
+  hasWind           @21 :Bool $Go.name("hasWindFlag");
   wind              @22 :DailyWind;
-  hasStormOrientation @23 :Bool;
+  hasStormOrientation @23 :Bool $Go.name("hasStormOrientationFlag");
   stormOrientation  @24 :StormOrientation;
   # Plain-language companion to `stormOrientation`. Empty when absent.
   stormOrientationDescription @25 :Text;
@@ -561,7 +646,7 @@ struct DailyForecast {
   zodiacSign        @29 :ZodiacSign;
   # Seasonal climate normal for the day from the nearest climatology
   # station (REST `climatology`). hasClimatology=false when out of range.
-  hasClimatology @30 :Bool;
+  hasClimatology @30 :Bool $Go.name("hasClimatologyFlag");
   climatology    @31 :DayClimatology;
 
   # `P(day total >= 1.0 mm)` — the chance the day precipitates at
@@ -588,19 +673,20 @@ struct DailyForecast {
   # member's own extreme over the same windows). Present only with
   # `ForecastRequest.feelsLike` naming "utci", not served yet, so
   # the flags are false today. New ordinals only.
-  hasFeelsLikeUtciHigh @33 :Bool;
+  # DEPRECATED: withdrawn with `feels_like=utci`; never set.
+  hasFeelsLikeUtciHigh @33 :Bool $Go.name("hasFeelsLikeUtciHighFlag");
   feelsLikeUtciHigh    @34 :StatValues;
-  hasFeelsLikeUtciLow  @35 :Bool;
+  hasFeelsLikeUtciLow  @35 :Bool $Go.name("hasFeelsLikeUtciLowFlag");
   feelsLikeUtciLow     @36 :StatValues;
   # `condition` is the machine code; its display text.
   conditionText @37 :Text;
   # The day's snow level, the day totals given a wet day, and the headline (REST
   # `snow_level`, `total_precip_if_wet`, `total_snowfall_if_wet`, `precip_display`).
-  hasSnowLevel          @38 :Bool;
+  hasSnowLevel          @38 :Bool $Go.name("hasSnowLevelFlag");
   snowLevel             @39 :Quantiles;
-  hasTotalPrecipIfWet   @40 :Bool;
+  hasTotalPrecipIfWet   @40 :Bool $Go.name("hasTotalPrecipIfWetFlag");
   totalPrecipIfWet      @41 :Quantiles;
-  hasTotalSnowfallIfWet @42 :Bool;
+  hasTotalSnowfallIfWet @42 :Bool $Go.name("hasTotalSnowfallIfWetFlag");
   totalSnowfallIfWet    @43 :Quantiles;
   precipDisplay         @44 :PrecipDisplay;
 }
@@ -609,16 +695,16 @@ struct SnowOutlook {
   next24h            @0 :Float64;
   next48h            @1 :Float64;
   next7d             @2 :Float64;
-  hasOvernight4pm9am @3 :Bool;
+  hasOvernight4pm9am @3 :Bool $Go.name("hasOvernight4pm9amFlag");
   overnight4pm9am    @4 :Float64;
   # Whether each window is covered by the forecast; an uncovered
   # window (the model run ends first) has no total and reads as null.
-  hasNext24h         @5 :Bool;
-  hasNext48h         @6 :Bool;
-  hasNext7d          @7 :Bool;
+  hasNext24h         @5 :Bool $Go.name("hasNext24hFlag");
+  hasNext48h         @6 :Bool $Go.name("hasNext48hFlag");
+  hasNext7d          @7 :Bool $Go.name("hasNext7dFlag");
   # Each window's range -- the percentiles of every member's own
   # window total, the mean the headline's (REST `quantiles`).
-  hasQuantiles       @8 :Bool;
+  hasQuantiles       @8 :Bool $Go.name("hasQuantilesFlag");
   quantiles          @9 :SnowOutlookQuantiles;
 }
 
@@ -626,11 +712,11 @@ struct SnowOutlook {
 # too few members cover it. Each a StatValues (REST `Quantiles`: spread is
 # max - min, no probability).
 struct SnowOutlookQuantiles {
-  hasNext24h @0 :Bool;
+  hasNext24h @0 :Bool $Go.name("hasNext24hFlag");
   next24h    @1 :StatValues;
-  hasNext48h @2 :Bool;
+  hasNext48h @2 :Bool $Go.name("hasNext48hFlag");
   next48h    @3 :StatValues;
-  hasNext7d  @4 :Bool;
+  hasNext7d  @4 :Bool $Go.name("hasNext7dFlag");
   next7d     @5 :StatValues;
 }
 
@@ -641,7 +727,7 @@ struct ForecastData {
   intervalHours  @1 :UInt32;
   timeseries     @2 :List(TimeSeriesPoint);
   daily          @3 :List(DailyForecast);
-  hasSnowOutlook @4 :Bool;
+  hasSnowOutlook @4 :Bool $Go.name("hasSnowOutlookFlag");
   snowOutlook    @5 :SnowOutlook;
 }
 
@@ -651,16 +737,16 @@ struct ElevationTimeSeriesPoint {
   validTime         @0 :Int64;
   leadTimeHours     @1 :UInt32;
   temperature       @2 :StatValues;
-  hasSnowLevelDelta @3 :Bool;
+  hasSnowLevelDelta @3 :Bool $Go.name("hasSnowLevelDeltaFlag");
   snowLevelDelta    @4 :StatValues;  # Elevation minus snow level: positive = above it = snow.
-  hasWindSpeed      @5 :Bool;
+  hasWindSpeed      @5 :Bool $Go.name("hasWindSpeedFlag");
   windSpeed         @6 :StatValues;
-  hasWindGust       @7 :Bool;
+  hasWindGust       @7 :Bool $Go.name("hasWindGustFlag");
   windGust          @8 :StatValues;
   # The hour's served precipitation and condition, as on the
   # variant's `hourly` point. New ordinals; an older reader ignores them.
   precipitation     @9 :StatValues;
-  condition         @10 :Text;
+  condition         @10 :Text;     # Machine code; display text in conditionText.
   conditionIcon     @11 :Text;
   # `condition` is the machine code; its display text.
   conditionText @12 :Text;
@@ -669,6 +755,8 @@ struct ElevationTimeSeriesPoint {
 struct ElevationForecast {
   name       @0 :Text;        # Free-text elevation label.
   elevation  @1 :Float64;     # Length units of the request.
+  # DEPRECATED: `isDefault` and the legacy compact `timeseries`
+  # are no longer served (false / empty); REST dropped both. Read `hourly`.
   isDefault  @2 :Bool;        # UI default for multi-elevation cards.
   timeseries @3 :List(ElevationTimeSeriesPoint);  # Legacy; see `hourly`.
   daily      @4 :List(DailyForecast);
@@ -680,7 +768,7 @@ struct ElevationForecast {
   lat            @5 :Float64;   # Where this elevation was forecast.
   lon            @6 :Float64;
   hourly         @7 :List(TimeSeriesPoint);
-  hasSnowOutlook @8 :Bool;
+  hasSnowOutlook @8 :Bool $Go.name("hasSnowOutlookFlag");
   snowOutlook    @9 :SnowOutlook;
 }
 
@@ -717,12 +805,13 @@ struct ForecastResponse {
   location          @0 :LocationInfo;
   modelRun          @1 :ModelRunInfo;
   forecast          @2 :ForecastData;
-  # Lapse-rate forecasts for ski-area sub-elevations (only when the
-  # request set `showAllElevations=true` and the location has more
-  # than one elevation point).
+  # Forecasts at a multi-elevation location's other elevations (REST
+  # `elevation_forecasts`): present only when the request named them
+  # (REST `?elevations=all` or a list of names) and the location has more
+  # than one elevation point.
   elevationForecasts @3 :List(ElevationForecast);
   # Columbia Gorge gap flow status (only for Gorge corridor locations).
-  hasGapFlow        @4 :Bool;
+  hasGapFlow        @4 :Bool $Go.name("hasGapFlowFlag");
   gapFlow           @5 :GapFlowInfo;
   # Nearby sensors ranked by elevation-weighted distance (top 5 by default).
   nearestSensors    @6 :List(NearestSensor);
@@ -735,10 +824,10 @@ struct ForecastResponse {
   # `nowcast_applied`; false for `?nowcast=false`).
   nowcastApplied    @8 :Bool;
   # The coordinate forecast's point (REST `point`).
-  hasPoint          @9 :Bool;
+  hasPoint          @9 :Bool $Go.name("hasPointFlag");
   point             @10 :PointInfo;
   # "Right now" flattened (REST `current`).
-  hasCurrent        @11 :Bool;
+  hasCurrent        @11 :Bool $Go.name("hasCurrentFlag");
   current           @12 :CurrentConditions;
   # The data sources this body draws on (REST `attribution`).
   attribution       @13 :Attribution;
@@ -746,7 +835,7 @@ struct ForecastResponse {
   # the request's. `hasUnits` is false only on a message from a server older
   # than this field -- read `units` only when it is true (the enum's default,
   # `imperial`, would otherwise be a guess).
-  hasUnits          @14 :Bool;
+  hasUnits          @14 :Bool $Go.name("hasUnitsFlag");
   units             @15 :Units;
   # The live nowcast sources this body was built without because
   # their read did not answer in time (REST `nowcast_unavailable`). Empty =
@@ -754,23 +843,23 @@ struct ForecastResponse {
   nowcastUnavailable @16 :List(Text);
   # The options the server applied after the tier clamps (REST
   # `applied`); false on a body no request shaped.
-  hasApplied        @17 :Bool;
+  hasApplied        @17 :Bool $Go.name("hasAppliedFlag");
   applied           @18 :AppliedOptions;
   # The `prob` terms answered, and the `totals` distributions (REST
   # `probabilities`, `window_totals`); empty when none were asked.
   probabilities @19 :List(ProbabilityResult);
   windowTotals  @20 :List(WindowTotal);
   # The event behind every served probability (REST `thresholds`).
-  hasThresholds @21 :Bool;
+  hasThresholds @21 :Bool $Go.name("hasThresholdsFlag");
   thresholds    @22 :ProbabilityThresholds;
 }
 
 # The effective forecast options and which requested values
 # the server changed (REST `AppliedOptions`).
 struct AppliedOptions {
-  hasMaxHours @0 :Bool;
+  hasMaxHours @0 :Bool $Go.name("hasMaxHoursFlag");
   maxHours    @1 :UInt32;
-  hasMaxDays  @2 :Bool;
+  hasMaxDays  @2 :Bool $Go.name("hasMaxDaysFlag");
   maxDays     @3 :UInt32;
   # Option names, in the REST order (`max_hours`, then `max_days`).
   clamped     @4 :List(Text);
@@ -793,39 +882,41 @@ struct PointInfo {
 struct CurrentConditions {
   time                 @0 :Int64;    # Unix seconds UTC.
   temperature          @1 :Float64;
-  hasFeelsLike         @2 :Bool;
+  hasFeelsLike         @2 :Bool $Go.name("hasFeelsLikeFlag");
   feelsLike            @3 :Float64;
-  condition            @4 :Text;
+  condition            @4 :Text;    # Machine code; display text in conditionText.
   conditionIcon        @5 :Text;
   wind                 @6 :CurrentWind;
-  hasHumidity          @7 :Bool;
+  hasHumidity          @7 :Bool $Go.name("hasHumidityFlag");
   humidity             @8 :Float64;  # Percent.
-  hasDewpoint          @9 :Bool;
+  hasDewpoint          @9 :Bool $Go.name("hasDewpointFlag");
   dewpoint             @10 :Float64;
-  hasPrecipProbability @11 :Bool;
+  hasPrecipProbability @11 :Bool $Go.name("hasPrecipProbabilityFlag");
   precipProbability    @12 :Float64; # 0..1
   source               @13 :Text;    # "nowcast" | "model"
-  hasStation           @14 :Bool;
+  hasStation           @14 :Bool $Go.name("hasStationFlag");
   station              @15 :CurrentStation;
   # `condition` is the machine code; its display text. The wind, flat as the
   # forecast's ensemble names it (REST `wind_speed`, `wind_gust`, `wind_direction`).
   conditionText @16 :Text;
   windSpeed     @17 :Float64;
-  hasWindGust   @18 :Bool;
+  hasWindGust   @18 :Bool $Go.name("hasWindGustFlag");
   windGust      @19 :Float64;
   windDirection @20 :Float64;
 }
 
 struct CurrentWind {
   speed     @0 :Float64;
-  hasGust   @1 :Bool;
+  hasGust   @1 :Bool $Go.name("hasGustFlag");
   gust      @2 :Float64;
   direction @3 :Float64;   # Degrees clockwise from north.
 }
 
 struct CurrentStation {
-  name            @0 :Text;
+  name            @0 :Text;    # The registry name, else the id.
   observationTime @1 :Int64;   # Unix seconds UTC.
+  # The station's id in its network (REST `station_id`).
+  stationId       @2 :Text;
 }
 
 # The response's data-source credit (REST `attribution`).
@@ -846,15 +937,20 @@ enum MembersView {
 struct ListRunsRequest {
   credentials @0 :Credentials;
   limit       @1 :UInt32;     # 0 → server default (10), capped at 100.
+  # The previous page's `nextCursor`; empty = the first page.
+  cursor      @2 :Text;
 }
 
 struct ListRunsResponse {
   count          @0 :UInt32;
   availableRuns  @1 :List(Int64);   # Unix seconds UTC.
   # REST /runs -- what a forecast serves now, and the pinnable runs.
-  hasServed @2 :Bool;
+  hasServed @2 :Bool $Go.name("hasServedFlag");
   served    @3 :ServedRun;
   runs      @4 :List(RunEntry);
+  # The next page's `cursor`; empty on the last page (REST
+  # `next_cursor: null`).
+  nextCursor @5 :Text;
 }
 
 # ── List locations (REST: GET /api/v1/locations[/{state}]) ──────────
@@ -866,7 +962,7 @@ struct ListLocationsRequest {
   units       @3 :Units;
   # Keyset paging, as REST (`?limit=&cursor=`). Ordered by slug;
   # `cursor` is the previous page's `nextCursor`. limit 0 = the REST
-  # default: one page of 5000 for the all-states list (never the whole
+  # default: one page of 500 for the all-states list (never the whole
   # catalog), the whole state for a state. Capped at 5000.
   cursor      @4 :Text;
   limit       @5 :UInt32;
@@ -887,7 +983,7 @@ struct LocationSummary {
   type           @5 :Text;
   state          @6 :Text;
   county         @7 :Text;
-  hasDescription @8 :Bool;
+  hasDescription @8 :Bool $Go.name("hasDescriptionFlag");
   description    @9 :Text;
   elevations     @10 :List(ElevationInfo);
   # The IANA zone the location's local days and hours are kept in
@@ -926,50 +1022,50 @@ struct SensorObservation {
   station             @0  :Text;
   source              @1  :Text;
   observationTime     @2  :Int64;
-  hasTemperature      @3  :Bool;
+  hasTemperature      @3  :Bool $Go.name("hasTemperatureFlag");
   temperature         @4  :Float64;
-  hasPrecipitation    @5  :Bool;
+  hasPrecipitation    @5  :Bool $Go.name("hasPrecipitationFlag");
   precipitation       @6  :Float64;
-  hasWindSpeed        @7  :Bool;
+  hasWindSpeed        @7  :Bool $Go.name("hasWindSpeedFlag");
   windSpeed           @8  :Float64;
-  hasWindDirection    @9  :Bool;
+  hasWindDirection    @9  :Bool $Go.name("hasWindDirectionFlag");
   windDirection       @10 :Float64;
-  hasPressure         @11 :Bool;
+  hasPressure         @11 :Bool $Go.name("hasPressureFlag");
   pressure            @12 :Float64;
-  hasHumidity         @13 :Bool;
+  hasHumidity         @13 :Bool $Go.name("hasHumidityFlag");
   humidity            @14 :Float64;
-  hasDewpoint         @15 :Bool;
+  hasDewpoint         @15 :Bool $Go.name("hasDewpointFlag");
   dewpoint            @16 :Float64;
-  hasPavementTemp     @17 :Bool;
+  hasPavementTemp     @17 :Bool $Go.name("hasPavementTempFlag");
   pavementTemp        @18 :Float64;
-  hasSubsurfaceTemp   @19 :Bool;
+  hasSubsurfaceTemp   @19 :Bool $Go.name("hasSubsurfaceTempFlag");
   subsurfaceTemp      @20 :Float64;
-  hasVisibility       @21 :Bool;
-  visibility          @22 :Float64;
-  hasSnowDepth        @23 :Bool;
+  hasVisibility       @21 :Bool $Go.name("hasVisibilityFlag");
+  visibility          @22 :Float64;  # m (metric) / statute miles (imperial).
+  hasSnowDepth        @23 :Bool $Go.name("hasSnowDepthFlag");
   snowDepth           @24 :Float64;
-  hasSwe              @25 :Bool;
+  hasSwe              @25 :Bool $Go.name("hasSweFlag");
   swe                 @26 :Float64;
-  hasSwePercentOfMedian @27 :Bool;
+  hasSwePercentOfMedian @27 :Bool $Go.name("hasSwePercentOfMedianFlag");
   swePercentOfMedian    @28 :Float64;
-  hasWindGust         @29 :Bool;
+  hasWindGust         @29 :Bool $Go.name("hasWindGustFlag");
   windGust            @30 :Float64;
-  hasSnowfall         @31 :Bool;
+  hasSnowfall         @31 :Bool $Go.name("hasSnowfallFlag");
   snowfall            @32 :Float64;
-  hasSolarRadiation   @33 :Bool;
+  hasSolarRadiation   @33 :Bool $Go.name("hasSolarRadiationFlag");
   solarRadiation      @34 :Float64;
-  hasPavementCondition @35 :Bool;
+  hasPavementCondition @35 :Bool $Go.name("hasPavementConditionFlag");
   pavementCondition    @36 :Text;
   # The readings REST serves that this struct lacked. Same units
   # rule as the fields above (cloud cover percent, radar dBZ, rate mm/h or
   # in/h, ceiling m or ft).
-  hasCloudCover       @37 :Bool;
+  hasCloudCover       @37 :Bool $Go.name("hasCloudCoverFlag");
   cloudCover          @38 :Float64;
-  hasCeilingHeight    @39 :Bool;
+  hasCeilingHeight    @39 :Bool $Go.name("hasCeilingHeightFlag");
   ceilingHeight       @40 :Float64;
-  hasPrecipRate       @41 :Bool;
+  hasPrecipRate       @41 :Bool $Go.name("hasPrecipRateFlag");
   precipRate          @42 :Float64;
-  hasReflectivity     @43 :Bool;
+  hasReflectivity     @43 :Bool $Go.name("hasReflectivityFlag");
   reflectivity        @44 :Float64;
   # The station's registry name (`station` is its id).
   name @45 :Text;
@@ -988,13 +1084,13 @@ struct CurrentObservationsResponse {
   asOf                     @8  :Int64;   # When this overlay was assembled.
   # The reference init of the cycle the band came from; 0 with
   # hasModelRunInitializedAt false when no cycle is servable.
-  hasModelRunInitializedAt @9  :Bool;
+  hasModelRunInitializedAt @9  :Bool $Go.name("hasModelRunInitializedAtFlag");
   modelRunInitializedAt    @10 :Int64;
   # The obs-blended hours in [asOf - 1 h, asOf + 10 h]; absent (flag false)
   # when no cycle is servable.
-  hasNowcastHours          @11 :Bool;
+  hasNowcastHours          @11 :Bool $Go.name("hasNowcastHoursFlag");
   nowcastHours             @12 :List(TimeSeriesPoint);
-  hasCurrent               @13 :Bool;
+  hasCurrent               @13 :Bool $Go.name("hasCurrentFlag");
   current                  @14 :CurrentConditions;
   units                    @15 :Units;
   attribution              @16 :Attribution;
@@ -1019,6 +1115,8 @@ struct ActiveAlert {
   onset    @5 :Int64;   # Unix seconds UTC; 0 = not given.
   expires  @6 :Int64;
   ends     @7 :Int64;   # 0 = not given.
+  # Snake_case (`observed`, `likely`, ...), as severity/urgency.
+  certainty @8 :Text;
 }
 
 # ── Location search ─────────────
@@ -1106,13 +1204,18 @@ struct ProbabilityResult {
   windowStartHours @3 :UInt32;
   windowEndHours   @4 :UInt32;
   aggregation      @5 :Text;
-  hasFrom          @6 :Bool;
+  hasFrom          @6 :Bool $Go.name("hasFromFlag");
   from             @7 :Int64;
-  hasTo            @8 :Bool;
+  hasTo            @8 :Bool $Go.name("hasToFlag");
   to               @9 :Int64;
-  hasProbability   @10 :Bool;
+  hasProbability   @10 :Bool $Go.name("hasProbabilityFlag");
   probability      @11 :Float64;
   members          @12 :UInt32;
+  # The term's canonical spelling (REST `term`), and why
+  # `probability` is absent (`window_not_covered`, `too_few_members`,
+  # `variable_unavailable`; empty when it is present).
+  term             @13 :Text;
+  nullReason       @14 :Text;
 }
 
 # One window total across the members (REST `WindowTotal`).
@@ -1120,13 +1223,20 @@ struct WindowTotal {
   variable         @0 :Text;
   windowStartHours @1 :UInt32;
   windowEndHours   @2 :UInt32;
-  hasFrom          @3 :Bool;
+  hasFrom          @3 :Bool $Go.name("hasFromFlag");
   from             @4 :Int64;
-  hasTo            @5 :Bool;
+  hasTo            @5 :Bool $Go.name("hasToFlag");
   to               @6 :Int64;
-  hasQuantiles     @7 :Bool;
+  hasQuantiles     @7 :Bool $Go.name("hasQuantilesFlag");
   quantiles        @8 :WindowQuantiles;
   members          @9 :UInt32;
+  # `total` (an amount's window total), `min` or `max` (each
+  # member's lowest or highest value over the window).
+  aggregation      @10 :Text;
+  # The term's canonical spelling, and why `quantiles` is absent
+  # (empty when it is present), as `ProbabilityResult`'s.
+  term             @11 :Text;
+  nullReason       @12 :Text;
 }
 
 # A window total's distribution (caller units).
@@ -1149,9 +1259,9 @@ struct Quantiles {
   p50    @3 :Float64;
   p75    @4 :Float64;
   p90    @5 :Float64;
-  hasMin @6 :Bool;
+  hasMin @6 :Bool $Go.name("hasMinFlag");
   min    @7 :Float64;
-  hasMax @8 :Bool;
+  hasMax @8 :Bool $Go.name("hasMaxFlag");
   max    @9 :Float64;
 }
 
@@ -1159,7 +1269,7 @@ struct Quantiles {
 struct PrecipDisplay {
   kind      @0 :Text;
   chance    @1 :Float64;
-  hasAmount @2 :Bool;
+  hasAmount @2 :Bool $Go.name("hasAmountFlag");
   amount    @3 :Float64;
 }
 
@@ -1177,7 +1287,7 @@ struct ServedRun {
   initializedAt @0 :Int64;
   modelCycles   @1 :List(ModelCycleEntry);
   # REST `served.models`; supersedes modelCycles (never
-  # released), which is left empty.
+  # released), which is DEPRECATED and left empty.
   models @2 :List(ModelEntry);
 }
 
@@ -1233,17 +1343,17 @@ struct StormReportCard {
   endTime               @4 :Int64;
   forecastTotalMm       @5 :Float64;
   observedTotalMm       @6 :Float64;
-  hasForecastSnowfallMm @7 :Bool;
+  hasForecastSnowfallMm @7 :Bool $Go.name("hasForecastSnowfallMmFlag");
   forecastSnowfallMm    @8 :Float64;
-  hasObservedSnowfallMm @9 :Bool;
+  hasObservedSnowfallMm @9 :Bool $Go.name("hasObservedSnowfallMmFlag");
   observedSnowfallMm    @10 :Float64;
-  hasBestModel          @11 :Bool;
+  hasBestModel          @11 :Bool $Go.name("hasBestModelFlag");
   bestModel             @12 :Text;
-  hasBestLeadTimeHours  @13 :Bool;
+  hasBestLeadTimeHours  @13 :Bool $Go.name("hasBestLeadTimeHoursFlag");
   bestLeadTimeHours     @14 :Int32;
-  hasCompositeScore     @15 :Bool;
+  hasCompositeScore     @15 :Bool $Go.name("hasCompositeScoreFlag");
   compositeScore        @16 :Float64;
-  hasHeadline           @17 :Bool;
+  hasHeadline           @17 :Bool $Go.name("hasHeadlineFlag");
   headline              @18 :Text;
 }
 
@@ -1251,6 +1361,9 @@ struct StormReportCard {
 struct StormReportsResponse {
   reports @0 :List(StormReportCard);
   count   @1 :UInt32;
+  # The next page's `cursor`; empty on the last page (REST
+  # `next_cursor: null`).
+  nextCursor @2 :Text;
 }
 
 # One source of the attribution registry.
@@ -1283,9 +1396,9 @@ struct AttributionRegistry {
 struct CatalogElevation {
   label          @0 :Text;
   elevationM     @1 :Float64;
-  hasLatOverride @2 :Bool;
+  hasLatOverride @2 :Bool $Go.name("hasLatOverrideFlag");
   latOverride    @3 :Float64;
-  hasLonOverride @4 :Bool;
+  hasLonOverride @4 :Bool $Go.name("hasLonOverrideFlag");
   lonOverride    @5 :Float64;
   isDefault      @6 :Bool;
 }
@@ -1306,7 +1419,7 @@ struct CatalogWebcam {
   url                       @1 :Text;
   embedType                 @2 :Text;
   provider                  @3 :Text;
-  hasRefreshIntervalSeconds @4 :Bool;
+  hasRefreshIntervalSeconds @4 :Bool $Go.name("hasRefreshIntervalSecondsFlag");
   refreshIntervalSeconds    @5 :Int32;
 }
 
@@ -1316,9 +1429,9 @@ struct CatalogNearbyStation {
   name              @1 :Text;
   network           @2 :Text;
   stationStatus     @3 :Text;
-  hasDistanceKm     @4 :Bool;
+  hasDistanceKm     @4 :Bool $Go.name("hasDistanceKmFlag");
   distanceKm        @5 :Float64;
-  hasElevationDiffM @6 :Bool;
+  hasElevationDiffM @6 :Bool $Go.name("hasElevationDiffMFlag");
   elevationDiffM    @7 :Float64;
   isPrimary         @8 :Bool;
 }
@@ -1360,18 +1473,18 @@ struct CatalogEntry {
   isFeatured                @20 :Bool;
   network                   @21 :Text;
   sourceStationId           @22 :Text;
-  hasElevationMslM          @23 :Bool;
+  hasElevationMslM          @23 :Bool $Go.name("hasElevationMslMFlag");
   elevationMslM             @24 :Float64;
-  hasSensorHeightAglM       @25 :Bool;
+  hasSensorHeightAglM       @25 :Bool $Go.name("hasSensorHeightAglMFlag");
   sensorHeightAglM          @26 :Float64;
   sensorCapabilities        @27 :List(Text);
   stationStatus             @28 :Text;
-  hasLastReportAt           @29 :Bool;
+  hasLastReportAt           @29 :Bool $Go.name("hasLastReportAtFlag");
   lastReportAt              @30 :Int64;
   lastReportSummaryJson     @31 :Text;
   installDate               @32 :Text;
   decommissionDate          @33 :Text;
-  hasUpdateFrequencyMinutes @34 :Bool;
+  hasUpdateFrequencyMinutes @34 :Bool $Go.name("hasUpdateFrequencyMinutesFlag");
   updateFrequencyMinutes    @35 :Int32;
   stationUrl                @36 :Text;
   dataUrl                   @37 :Text;
@@ -1379,7 +1492,7 @@ struct CatalogEntry {
   photos                    @39 :List(CatalogPhoto);
   webcams                   @40 :List(CatalogWebcam);
   nearbyStations            @41 :List(CatalogNearbyStation);
-  hasPrimaryLocation        @42 :Bool;
+  hasPrimaryLocation        @42 :Bool $Go.name("hasPrimaryLocationFlag");
   primaryLocation           @43 :CatalogPrimaryLocation;
   templateJson              @44 :Text;
   contentJson               @45 :Text;
@@ -1395,9 +1508,9 @@ struct CatalogPage {
 # One contributing model (REST `ModelEntry`).
 struct ModelEntry {
   id         @0 :Text;
-  hasCycle   @1 :Bool;
+  hasCycle   @1 :Bool $Go.name("hasCycleFlag");
   cycle      @2 :Int64;
-  hasMembers @3 :Bool;
+  hasMembers @3 :Bool $Go.name("hasMembersFlag");
   members    @4 :UInt32;
 }
 

@@ -115,7 +115,9 @@ try {
   const { free, pro } = limits.horizon_hours;
   if (!spec.includes(`Free ${free}, Pro ${pro}`)) fail(`src/data/limits.json: the OpenAPI spec no longer says the horizon is "Free ${free}, Pro ${pro}"`);
   const { anonymous, free: freePage } = limits.list_page_max;
-  if (!spec.includes(`at most ${anonymous}\n        for anonymous and ${freePage} for Free`) && !spec.includes(`Capped at ${anonymous} for anonymous and ${freePage}`)) {
+  // Descriptions wrap anywhere: compare with whitespace runs folded.
+  const flat = spec.replace(/\s+/g, ' ');
+  if (!flat.includes(`at most ${anonymous} for anonymous and ${freePage} for Free`) && !flat.includes(`Capped at ${anonymous} for anonymous and ${freePage}`)) {
     fail(`src/data/limits.json: the OpenAPI spec no longer states list pages of ${anonymous} (anonymous) and ${freePage} (Free)`);
   }
   if (limits.sustained_per_minute !== 60) fail('src/data/limits.json: the documented sustained limit is 60 requests per minute');

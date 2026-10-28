@@ -12,9 +12,9 @@
 //
 // Values are in the request's `units`. Read `units` only when `hasUnits` is
 // true: the `Units` enum's zero value is `imperial`, while the REST default is
-// metric, so an unset field would otherwise be misread. gen.sh renames the
-// schema's sibling `hasFoo` bools to `HasFooFlag()` in Go (see gen.sh), so
-// `hasUnits` is `HasUnitsFlag()`.
+// metric, so an unset field would otherwise be misread. The schema names its
+// sibling `hasFoo` bools `HasFooFlag()` in Go (`$Go.name`), so `hasUnits` is
+// `HasUnitsFlag()`.
 package main
 
 import (

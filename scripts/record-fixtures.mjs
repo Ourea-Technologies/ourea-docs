@@ -12,8 +12,8 @@
 // seconds. Each file keeps the request, the date, the API version the server
 // reported (its ETag carries it) and only the fields the charts read, with
 // every value exactly as served: the script drops fields, it never changes
-// or computes one. Charts read the recordings through src/lib/recorded.mjs,
-// which accepts both the pre-v1 and the v1 response shapes.
+// or computes one. Charts read the recordings through src/lib/recorded.mjs.
+// A response that is not the v1 shape is refused.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,20 +26,16 @@ const only = args.includes('--only') ? args[args.indexOf('--only') + 1].split(',
 
 const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o?.[k] !== undefined).map((k) => [k, o[k]]));
 const QUANTILES = ['mean', 'min', 'p10', 'p25', 'p50', 'p75', 'p90', 'max'];
-// The model-run block, in either shape (v1 models[], or the pre-v1 per-model keys).
-const modelRun = (r) => pick(r, ['initialized_at', 'total_members', 'models', 'source_models', 'model_cycles', ...Object.keys(r ?? {}).filter((k) => k.endsWith('_members'))]);
+const modelRun = (r) => pick(r, ['initialized_at', 'total_members', 'models']);
 const MEMBER_FIELDS = ['member_id', 'cumulative_snowfall'];
-const members = (m) =>
-  Array.isArray(m)
-    ? m.map((e) => ({ id: e.id, members: e.members.map((x) => pick(x, MEMBER_FIELDS)) }))
-    : Object.fromEntries(Object.entries(m ?? {}).map(([id, list]) => [id, list.map((x) => pick(x, MEMBER_FIELDS))]));
+const members = (m) => m.map((e) => ({ id: e.id, members: e.members.map((x) => pick(x, MEMBER_FIELDS)) }));
 
 const RECORDINGS = {
   // The fan charts: hourly temperature and snowfall quantiles, 72 h.
   fan: {
     path: '/api/v1/locations/or/mt-hood-meadows?max_hours=72&units=imperial',
     keep: (b) => ({
-      location: pick(b.location, ['name', 'state', 'slug', 'elevation', 'elevation_m', 'timezone']),
+      location: pick(b.location, ['name', 'state', 'slug', 'elevation_m', 'timezone']),
       model_run: modelRun(b.model_run),
       units: b.units,
       timeseries: b.forecast.timeseries.map((t) => ({
@@ -53,7 +49,7 @@ const RECORDINGS = {
   plume: {
     path: '/api/v1/locations/or/mt-hood-meadows?daily=false&max_hours=240&members=true&nowcast=false&units=imperial',
     keep: (b) => ({
-      location: pick(b.location, ['name', 'state', 'slug', 'elevation', 'elevation_m', 'timezone']),
+      location: pick(b.location, ['name', 'state', 'slug', 'elevation_m', 'timezone']),
       model_run: modelRun(b.model_run),
       units: b.units,
       timeseries: b.forecast.timeseries.map((t) => ({ valid_time: t.valid_time, lead_time_hours: t.lead_time_hours, ...(t.members ? { members: members(t.members) } : {}) })),
@@ -73,13 +69,13 @@ for (const [name, rec] of Object.entries(RECORDINGS)) {
   if (!res.ok) throw new Error(`${name}: HTTP ${res.status} for ${rec.path}`);
   const etag = res.headers.get('etag') ?? '';
   const body = await res.json();
+  if (!Array.isArray(body.model_run?.models)) throw new Error(`${name}: not a v1 response (no model_run.models[])`);
   const file = {
     $comment: 'Recorded from the live API by scripts/record-fixtures.mjs: only the fields the charts draw, every value as served. Re-record with that script.',
     recorded_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     request: `GET ${API}${rec.path}`,
     api_version: /-v(\d+\.\d+\.\d+)-/.exec(etag)?.[1] ?? null,
-    // v1 serves model_run.models[] and timeseries[].members as [{id, members}].
-    shape: Array.isArray(body.model_run?.models) ? 'v1' : 'pre-v1',
+    shape: 'v1',
     response: rec.keep(body),
   };
   writeFileSync(join(outDir, `${name}.json`), `${JSON.stringify(file)}\n`);

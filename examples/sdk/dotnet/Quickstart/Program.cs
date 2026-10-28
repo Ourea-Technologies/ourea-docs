@@ -22,4 +22,4 @@ foreach (TimeSeriesPoint hour in forecast.Forecast.Timeseries)
 ProbabilityResult snow = forecast.Probabilities[0];
 Console.WriteLine(snow.Probability is double chance
     ? $"Chance of at least 6 in of snow in the next 24 h: {chance:P0} ({snow.Members} members)"
-    : "Chance of at least 6 in of snow in the next 24 h: not available (the forecast does not reach 24 h)");
+    : $"Chance of at least 6 in of snow in the next 24 h: not available ({snow.NullReason})");

@@ -37,6 +37,8 @@ fi
   tail -n +2 ../../../public/schema/v1/ourea.capnp |
     awk '/^interface [A-Za-z0-9_]+ *\{/ { skip = 1 } !skip { print } skip && /^\}/ { skip = 0 }'
 } > build/schema/ourea.capnp
+# ourea.capnp imports go.capnp (Go-only annotations) from its own directory.
+cp ../../../public/schema/v1/go.capnp build/schema/go.capnp
 
 capnp compile -I build/tools/capnproto-java/compiler/src/main/schema \
   --src-prefix=build/schema -o "$compiler:build/generated/java" build/schema/ourea.capnp

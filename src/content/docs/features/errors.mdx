@@ -166,9 +166,7 @@ not retry unchanged. Quote `request_id` (never the key) to support.
 
 **401.** Missing or invalid credentials. On a route that takes an API key
 the message is `Invalid or missing API key`. On a signed-in route it is
-`Sign in required` (no session sent) or `Session expired; sign in again`. A
-`Bearer` session token that resolves to no live session is also
-`UNAUTHORIZED`.
+`Sign in required` (no session sent) or `Session expired; sign in again`.
 
 **Do:** send a valid key, or sign in again. Do not retry unchanged. Quote
 `request_id` to support.

@@ -23,7 +23,7 @@ for (const name of ['fan', 'plume']) {
     assert.match(r.request, /^GET https:\/\/api\.oureawx\.com\/api\/v1\//);
     assert.match(r.recorded_at, /^\d{4}-\d\d-\d\dT/);
     assert.ok(r.api_version, 'api_version');
-    assert.ok(['v1', 'pre-v1'].includes(r.shape));
+    assert.equal(r.shape, 'v1');
   });
 }
 

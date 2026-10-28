@@ -11,11 +11,16 @@ import Example from '../../components/Example.astro';
 ## The schema
 
 Download the schema from this site:
-[**/schema/v1/ourea.capnp**](/schema/v1/ourea.capnp).
+[**/schema/v1/ourea.capnp**](/schema/v1/ourea.capnp), and
+[**/schema/v1/go.capnp**](/schema/v1/go.capnp) beside it.
 
 ```bash
-curl -sSO https://docs.oureawx.com/schema/v1/ourea.capnp
+curl -sS -O https://docs.oureawx.com/schema/v1/ourea.capnp -O https://docs.oureawx.com/schema/v1/go.capnp
 ```
+
+`ourea.capnp` imports `go.capnp` (go-capnp's standard annotation file,
+unchanged) for its `$Go.name` annotations, so every compiler needs the two
+files in one directory; only Go's code generator reads the annotations.
 
 It is versioned with API v1 and only ever grows: field ordinals never change
 and fields are never deleted, so a reader built from an older copy keeps
@@ -49,7 +54,6 @@ order it sorts with the other parameters (`format` before `max_hours`).
 | `/api/v1/catalog/locations`, `/api/v1/catalog/stations` | `CatalogPage` |
 | `/api/v1/catalog/{locations,stations}/{slug}` | `CatalogEntry` |
 | `/api/v1/runs` | `ListRunsResponse` |
-| `/api/v1/storm-reports`, `/api/v1/storm-reports/{id}` | `StormReportsResponse`, `StormReportCard` |
 | `/api/v1/attribution` | `AttributionRegistry` |
 
 ## Inspect it with `capnp decode`
@@ -105,9 +109,11 @@ RPC interface it leaves out is not part of the HTTPS format.
 </Aside>
 
 <Aside type="note">
-The Go generator collides with the schema's `hasFoo` flags, so the Go
-example's `gen.sh` renames them (`hasUnits` becomes `HasUnitsFlag()`) in a
-generated copy. The published schema itself is unchanged.
+capnpc-go generates `HasFoo()` for every pointer field `foo`, which would
+collide with the accessor of its sibling flag `hasFoo`; the schema names every
+such flag `$Go.name("hasFooFlag")`, so `hasUnits` reads as `HasUnitsFlag()`
+in Go. The Go example's `gen.sh` only adds the `$Go.package` and `$Go.import`
+file annotations, which a reader chooses.
 </Aside>
 
 ## Versioning

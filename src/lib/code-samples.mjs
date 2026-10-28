@@ -35,7 +35,7 @@ export const operationsOf = (spec) => {
       ops.push({ id: op.operationId, method, template, regex, op });
     }
   }
-  // A literal segment beats a parameter (/locations/or/x/current vs /locations/{state}/{name}):
+  // A literal segment beats a parameter (/locations/or/x/current vs /locations/{state}/{slug}):
   // anchored regexes already keep those apart, so declaration order is enough.
   return ops;
 };

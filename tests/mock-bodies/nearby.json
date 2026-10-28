@@ -9,7 +9,6 @@
     "type": "ski_area",
     "timezone": "America/Los_Angeles",
     "county": "Hood River",
-    "description": null,
     "elevations": []
   },
   "radius_km": 50,

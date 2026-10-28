@@ -24,8 +24,10 @@ canonical URL is:
    `max_hours=24`, `nowcast=true`, `format=json`, `feels_like=nws`,
    `daily=true`, `hourly=true`, `include_past=false`, `models=false`,
    `members=false`, and on nearby `limit=3` and `radius_km=50`.
-3. **Each parameter under its own name** (`units`, never the alias
-   `unit_system`), once. An unknown parameter is a `400`.
+3. **Each parameter under its own name** (`units`; the alias `unit_system`
+   is a `301` to it), once. An unknown parameter is a `400`. A comma list
+   (`diagnostics`, `elevations`, `include`, `sources`, ...) is sorted and
+   de-duplicated, with a literal `,`.
 4. **Alphabetical order** by parameter name.
 5. **Encoding:** RFC 3986 percent-encoding (space is `%20`, never `+`),
    except that `prob` and `totals` use literal `:` and `,`.

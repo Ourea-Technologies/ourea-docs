@@ -28,15 +28,15 @@ object, in the request's [units](/features/units/).
 | `slr` | Snow-to-liquid ratio | ratio |
 | `snow_level` | Snow level | m / ft |
 | `wind_speed`, `wind_gust` | Sustained wind and peak gust | m/s / mph |
-| `wind_direction` | Degrees from north the wind blows from. **Circular**: read `wind_direction_circular` (mean, spread and 50 % and 90 % arcs) | degrees |
+| `wind_direction` | Degrees from north the wind blows from. **Circular**: not quantiles but `mean`, `stddev` and the 50 % and 90 % arcs `sector_50`, `sector_90` (`from`, `to`, clockwise) | degrees |
 | `cloud_cover` | Cloud cover | % |
-| `skin_temperature` | Ground or snow-surface temperature | °C / °F |
-| `mslp` | Mean sea-level pressure | hPa / inHg |
+| `skin_temperature` | Ground or snow-surface temperature; only with `include=skin_temperature` | °C / °F |
+| `mslp` | Mean sea-level pressure; only with `include=mslp` | hPa / inHg |
 | `cape` | Convective available potential energy | J/kg |
 
 Each hour also carries `condition` (a stable machine code such as
 `partly_cloudy`), `condition_text` (display text) and `condition_icon`;
-`is_night`; `precip_type` (`snow`, `rain`, `rain_snow_mix`, `freezing_rain`,
+`is_night`; `precipitation_type` (`snow`, `rain`, `rain_snow_mix`, `freezing_rain`,
 with `snow_probability` and `rain_probability`); `freezing_level`;
 `inversion` when one is detected; `gust_notable` (whether the gust is worth
 showing beside the wind); and the headline running totals
@@ -52,16 +52,18 @@ One row per local calendar date in `location.timezone`:
 
 - `high`, `low`, `feels_like_high`, `feels_like_low`: calendar-day maximum and
   minimum, midnight to midnight local.
-- `total_precip`, `total_snowfall`: each member's own day total, as quantiles.
-- `precip_probability` (P(day total ≥ 2.5 mm)), `precip_occurrence_probability`
+- `total_precipitation`, `total_snowfall`: each member's own day total, as
+  quantiles.
+- `precipitation_probability` (P(day total ≥ 2.5 mm)),
+  `precipitation_occurrence_probability`
   (P(≥ 1.0 mm), "will it precipitate at all") and `snow_probability`
   (P(day snowfall ≥ 2.5 mm)).
-- `total_precip_if_wet`, `total_snowfall_if_wet`: the amount given a wet
+- `total_precipitation_if_wet`, `total_snowfall_if_wet`: the amount given a wet
   (snowy) day.
-- `precip_display`: the server's chosen precipitation headline (`kind`,
+- `precipitation_display`: the server's chosen precipitation headline (`kind`,
   `chance`, `amount`), so every client says the same thing.
 - `snow_level`, `snow_level_mean`, `cloud_cover_mean`, `wind`,
-  `storm_orientation`, `condition`, `condition_icon`, `precip_type`.
+  `storm_orientation`, `condition`, `condition_icon`, `precipitation_type`.
 - `astro`: `sunrise`, `sunset` (UTC), `moon_phase`, `moon_illumination`,
   `astronomical_season`.
 - `temperature_climatology`: the seasonal normal for the date.
@@ -86,15 +88,15 @@ never a shorter sum. For other windows, ask for
 ## Opt-in diagnostics
 
 `diagnostics=provenance` adds each hour's post-processing tags (which rule
-shaped each variable) and `diagnostics=ptype` the model-native
-precipitation-type code quantiles. They are for research and verification,
-not display.
+shaped each variable). It is for research and verification, not display.
+`include=skin_temperature,mslp` adds those two ensemble variables, which the
+default body leaves out.
 
 <Aside type="note">
 The forecast does not serve visibility. Observation sensors that measure it
 report it on [`/current`](/features/current-and-alerts/) as `visibility`.
-UTCI (`feels_like=utci`) is named in the spec but not served yet: asking for
-it is `400 FEELS_LIKE_UNAVAILABLE`.
+`feels_like` takes only `nws`, its default; any other value is a
+`400 BAD_REQUEST` naming `feels_like`.
 </Aside>
 
 ## Reference

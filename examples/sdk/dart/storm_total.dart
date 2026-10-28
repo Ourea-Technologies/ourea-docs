@@ -17,7 +17,8 @@ Future<void> main() async {
       final total = forecast.windowTotalFor(term);
       final q = total?.quantiles;
       if (total == null || q == null) {
-        print('${term.variable} over ${term.window}: not covered yet');
+        print('${term.variable} over ${term.window}: no value '
+            '(${total?.nullReason ?? 'not answered'})');
         continue;
       }
       print(

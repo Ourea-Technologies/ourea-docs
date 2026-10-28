@@ -1,0 +1,6 @@
+{
+  "$comment": "Written by scripts/sync-spec.mjs. openapi.yaml is the API server's docs/openapi-public.yaml at server_commit with maintainer-only description text removed; the vectors come from ensemble-weather-spec at spec/VERSION, whose own copy of the server spec is the same file.",
+  "server_commit": "3ba3f53988d4",
+  "source_sha256": "de21d6f8036f5407a21a61c608830805cf259435a95e1734a783e8ad68b883bf",
+  "served_sha256": "3c419ce803cfdd3929200b3182a3f324ca1c4e7c91cf2fcec888f33813805831"
+}

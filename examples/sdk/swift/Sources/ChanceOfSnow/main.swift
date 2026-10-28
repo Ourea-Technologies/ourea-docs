@@ -20,7 +20,9 @@ let forecast = try await client.forecast(
 for answer in forecast.probabilities {
     let unit =
         answer.variable == .temperature ? forecast.units.temperatureUnit : forecast.units.amountUnit
-    let chance = answer.probability.map { $0.formatted(.percent) } ?? "not covered"
+    let chance =
+        answer.probability.map { $0.formatted(.percent) }
+        ?? "unanswered (\(answer.nullReason?.rawValue ?? "no reason given"))"
     print(
         "P(\(answer.variable.rawValue) \(answer.comparison == .atLeast ? ">=" : "<=") \(answer.threshold) \(unit), "
             + "hours \(answer.windowStartHours)-\(answer.windowEndHours), \(answer.aggregation.rawValue)) = "

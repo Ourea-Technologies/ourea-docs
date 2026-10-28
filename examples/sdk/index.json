@@ -1,7 +1,7 @@
 {
   "python": {
-    "ref": "03b5ed16a66d",
-    "commit": "03b5ed16a66d6b20b32338ed46899dcedbb3eaee",
+    "ref": "f15a2533c666",
+    "commit": "f15a2533c666c1f53047bf5d52744da8e90eb2a9",
     "runtime": "Python >=3.10",
     "tasks": {
       "quickstart": "examples/sdk/python/quickstart.py",
@@ -17,8 +17,8 @@
     }
   },
   "typescript": {
-    "ref": "82a204697c6d",
-    "commit": "82a204697c6d3826edbf7b891ed5637c128684bf",
+    "ref": "06ec6fabc948",
+    "commit": "06ec6fabc94846f47c3b83ab3c61f9ee60789117",
     "runtime": "Node.js >=18",
     "tasks": {
       "quickstart": "examples/sdk/typescript/quickstart.ts",
@@ -34,8 +34,8 @@
     }
   },
   "go": {
-    "ref": "fd63d0b4df41",
-    "commit": "fd63d0b4df41f6c0c5dfabf709154c1047c15d93",
+    "ref": "2d5b74fe169f",
+    "commit": "2d5b74fe169f53adde00004cb71b710f39273d7f",
     "runtime": "Go 1.22+",
     "tasks": {
       "quickstart": "examples/sdk/go/quickstart/main.go",
@@ -51,8 +51,8 @@
     }
   },
   "dotnet": {
-    "ref": "dd0e9b97a688",
-    "commit": "dd0e9b97a688276fe319d4a153155e6576f90869",
+    "ref": "cad1bf806f85",
+    "commit": "cad1bf806f85c62d548210ad3f13c3bb25017ac3",
     "runtime": "net8.0, netstandard2.0",
     "tasks": {
       "quickstart": "examples/sdk/dotnet/Quickstart/Program.cs",
@@ -68,8 +68,8 @@
     }
   },
   "java": {
-    "ref": "c588d4987efe",
-    "commit": "c588d4987efe88709abeb86ec57303d4d87abe9f",
+    "ref": "a30702105300",
+    "commit": "a30702105300d33db0f13dbaa8b7f8fae87e5494",
     "runtime": "Java 11+",
     "tasks": {
       "quickstart": "examples/sdk/java/Quickstart.java",
@@ -85,8 +85,8 @@
     }
   },
   "kotlin": {
-    "ref": "bc61bc640131",
-    "commit": "bc61bc6401317ef5807d5bf46b6b051f355bb3ae",
+    "ref": "d8f7a530dfc5",
+    "commit": "d8f7a530dfc53eb43cc99f717c207fe397b2f07b",
     "runtime": "Java 11+",
     "tasks": {
       "quickstart": "examples/sdk/kotlin/Quickstart.kt",
@@ -102,8 +102,8 @@
     }
   },
   "swift": {
-    "ref": "eb86e27a39ee",
-    "commit": "eb86e27a39eec1a25fff225ba2f5a217dab39ceb",
+    "ref": "6ac488dc8aa9",
+    "commit": "6ac488dc8aa9a14c73f828a98cedad5640735f7e",
     "runtime": "Swift 6.0 (iOS 15, macOS 12, tvOS 15, watchOS 8)",
     "tasks": {
       "quickstart": "examples/sdk/swift/Sources/Quickstart/main.swift",
@@ -119,8 +119,8 @@
     }
   },
   "dart": {
-    "ref": "8f5a704966c4",
-    "commit": "8f5a704966c4ed78b9b6a43f0eaf693966b88d44",
+    "ref": "75a2eed9dc45",
+    "commit": "75a2eed9dc458908c52c215de0e599eccc92435d",
     "runtime": "Dart 3.5+",
     "tasks": {
       "quickstart": "examples/sdk/dart/quickstart.dart",
@@ -136,8 +136,8 @@
     }
   },
   "r": {
-    "ref": "70a6d2a53ce8",
-    "commit": "70a6d2a53ce86d0f4c36be2c1e50894e0870e235",
+    "ref": "2eecab05fa6a",
+    "commit": "2eecab05fa6aacca9d1efae9e32d8e5691348816",
     "runtime": "R 4.1+",
     "tasks": {
       "quickstart": "examples/sdk/r/quickstart.R",

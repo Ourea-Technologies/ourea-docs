@@ -18,7 +18,7 @@ import { MAX_WINDOW_HOURS, PROB_VARIABLES, TOTAL_VARIABLES } from '../lib/canoni
 const spec = YAML.parse(readFileSync(join(process.cwd(), SPEC_PATH), 'utf8'));
 const resolveRef = (o: any) => (o?.$ref ? o.$ref.replace(/^#\//, '').split('/').reduce((a: any, k: string) => a[k], spec) : o);
 const params = Object.fromEntries(
-  spec.paths['/api/v1/locations/{state}/{name}'].get.parameters
+  spec.paths['/api/v1/locations/{state}/{slug}'].get.parameters
     .map(resolveRef)
     .filter((p: any) => p.in === 'query')
     .map((p: any) => [p.name, resolveRef(p.schema ?? {})]),

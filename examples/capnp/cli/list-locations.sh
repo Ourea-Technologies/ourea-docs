@@ -16,6 +16,6 @@ SCHEMA="${OUREA_CAPNP_SCHEMA:-ourea.capnp}"
 # The first 100 Oregon locations, in slug order.
 curl -sS --fail-with-body --compressed "$API/api/v1/locations/or?format=capnp&limit=100" \
   | capnp decode "$SCHEMA" ListLocationsResponse
-# Every location in the coverage area, 500 to a page.
-curl -sS --fail-with-body --compressed "$API/api/v1/locations?format=capnp&limit=500" \
+# Every location in the coverage area, 500 to a page by default.
+curl -sS --fail-with-body --compressed "$API/api/v1/locations?format=capnp" \
   | capnp decode "$SCHEMA" ListLocationsResponse

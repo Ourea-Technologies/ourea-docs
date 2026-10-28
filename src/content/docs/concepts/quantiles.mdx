@@ -45,11 +45,12 @@ and the line is the median.
 
 ## Things that look like bugs but aren't
 
-- **Wind direction is circular.** Its quantiles describe an arc, ordered by
-  offset from the mean direction, so `max` can be numerically less than
-  `min` (a northerly hour: `min` 340, `max` 10). Read
-  `wind_direction_circular` for the mean and the 50 % and 90 % arcs. The SDKs
-  pass these through and never "fix" them.
+- **Wind direction is circular.** It is not a quantile ladder: `wind_direction`
+  carries the circular `mean`, `stddev` and the arcs holding 50 % and 90 % of
+  the members, `sector_50` and `sector_90`, each running clockwise from
+  `from` to `to`, so `to` can be numerically less than `from` (a northerly
+  hour: `from` 340, `to` 10). The SDKs pass these through and never "fix"
+  them.
 - **A missing field is absent, not 0.** An SDK never fills it in.
 - **The SDKs never interpolate.** A range is offered only for the pairs the
   server serves (p10 to p90, p25 to p75).

@@ -34,7 +34,7 @@ public class CurrentAndAlerts {
     AlertsResponse alerts = client.getAlerts(meadows);
     System.out.println(alerts.alertCount() + " active alert(s)");
     for (ActiveAlert alert : alerts.alerts()) {
-      System.out.println("  " + alert.severity() + ": " + alert.headline());
+      System.out.println("  " + alert.severityAsString() + ": " + alert.headline());
     }
   }
 }

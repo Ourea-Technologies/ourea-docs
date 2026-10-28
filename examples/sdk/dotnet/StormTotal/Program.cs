@@ -20,6 +20,6 @@ foreach (WindowTotal total in forecast.WindowTotals)
     }
     else
     {
-        Console.WriteLine($"{total.Variable}, hours {total.WindowStartHours}-{total.WindowEndHours}: not covered by the forecast");
+        Console.WriteLine($"{total.Variable}, hours {total.WindowStartHours}-{total.WindowEndHours}: unanswered ({total.NullReason})");
     }
 }

@@ -17,6 +17,6 @@ if [ -z "${OUREA_API_KEY:-}" ]; then
 fi
 # docs:hide-end
 
-# A map token for your Pro key. The route serves JSON only.
+# A map token for your Pro key.
 curl -sS --fail-with-body --compressed -H "X-API-Key: $OUREA_API_KEY" "$API/api/v1/maps/token"
 echo

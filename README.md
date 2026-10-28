@@ -14,8 +14,10 @@ npm run gate         # build, SEO and link checks, every example
 
 | What | Source | Refresh |
 |---|---|---|
-| `spec/vectors/`, `spec/openapi/v1/openapi.yaml` | [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec) at `spec/VERSION` | `npm run sync:spec` |
-| `public/schema/v1/ourea.capnp` | the Ourea server's schema, with maintainers' comments removed and every declaration checked identical (`public/schema/v1/SOURCE.json`) | `npm run sync:schema -- --source <file>` |
+| `spec/openapi/v1/openapi.yaml` | the Ourea server's public spec (`docs/openapi-public.yaml`) at the commit in `spec/openapi/v1/SOURCE.json`, with maintainer-only description text removed | `npm run sync:spec -- --server <server repo> [--server-ref <commit>]` |
+| `spec/vectors/` | [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec) at `spec/VERSION`, whose own copy of the server spec must be the same file (the sync and `--check` refuse otherwise) | the same, with `--spec-ref <commit>` |
+| `public/schema/v1/ourea.capnp`, `go.capnp` | the Ourea server's schema, with maintainers' comments removed and every declaration checked identical, and the `go.capnp` it imports, byte for byte (`public/schema/v1/SOURCE.json`) | `npm run sync:schema -- --source <server repo> [--ref <commit>]` |
+| `src/data/error-codes.json` | the server's error codes and `doc_url` rule | `node scripts/sync-error-codes.mjs --source <server repo> [--ref <commit>]` |
 | `examples/capnp/fixtures/` | the server's golden test message (`fixtures/source.json`) | by hand |
 | `src/data/limits.json` | the limits the docs publish, checked against the OpenAPI spec | by hand |
 | `src/data/recorded/` | responses recorded from the live API for the charts: the request, date, API version and shape in each file, only the fields the charts draw | `node scripts/record-fixtures.mjs` (by hand) |
@@ -69,9 +71,8 @@ the coverage map, the spec's coverage window over the Census outline. Only
 served values are vertices; straight lines join served hours, and nothing is
 smoothed, summed or interpolated (`tests/charts.test.mjs` counts them).
 
-The current recordings come from the pre-v1 API (0.1603.0, 2026-10-27);
-`src/lib/recorded.mjs` reads both shapes. Once v1 is deployed, re-record
-(`node scripts/record-fixtures.mjs`) and check the charts on
+The current recordings come from the v1 API (0.1661.0, 2026-10-27). After
+re-recording (`node scripts/record-fixtures.mjs`), check the charts on
 `/concepts/quantiles/`, `/concepts/adding-quantiles/`, `/features/plumes/`
 and `/features/models/`.
 

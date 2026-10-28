@@ -60,10 +60,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends capnproto libcapnp-dev
-      # Clones the public ensemble-weather-spec repository at spec/VERSION.
+      # Clones the public ensemble-weather-spec repository at spec/VERSION: the
+      # vectors must match it, and its copy of the server's public spec must
+      # be the file spec/openapi/v1/SOURCE.json records (the served spec is
+      # re-derived from it). Locally, --server <server repo> checks against
+      # the server repository itself.
       - run: node scripts/sync-spec.mjs --check
-      # The published schema compiles, carries no maintainer-only comments,
-      # and its schema nodes match the ones recorded when it was synced.
+      # The published schema compiles (with go.capnp beside it), carries no
+      # maintainer-only comments, and its schema nodes match the ones
+      # recorded when it was synced.
       - run: node scripts/sync-schema.mjs --check
 
   examples:
@@ -142,7 +147,7 @@ jobs:
           gradle-version: 9.8.2
       # The Kotlin example's gen.sh builds capnpc-java from its pinned
       # capnproto-java release tag. Rust (cargo) comes with the image. Each decoder must print exactly
-      # examples/capnp/expected/forecast_response.v9.txt for the golden message.
+      # examples/capnp/expected/forecast_response.v12.txt for the golden message.
       - run: node scripts/run-capnp-examples.mjs
 
   zizmor:

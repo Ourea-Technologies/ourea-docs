@@ -15,8 +15,8 @@ let forecast = try await client.forecast(
 for total in forecast.windowTotals {
     guard let quantiles = total.quantiles, let range = quantiles.range(.p10ToP90) else {
         print(
-            "\(total.variable.rawValue): the forecast does not cover hours 0-\(total.windowEndHours)"
-        )
+            "\(total.variable.rawValue), hours 0-\(total.windowEndHours): unanswered "
+                + "(\(total.nullReason?.rawValue ?? "no reason given"))")
         continue
     }
     print(

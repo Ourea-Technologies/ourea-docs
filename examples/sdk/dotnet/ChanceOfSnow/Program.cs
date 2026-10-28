@@ -15,7 +15,7 @@ ForecastResponse forecast = await client.GetLocationForecastAsync("or/mt-hood-me
 
 foreach (ProbabilityResult p in forecast.Probabilities)
 {
-    string chance = p.Probability is double value ? $"{value:P0}" : "n/a";
+    string chance = p.Probability is double value ? $"{value:P0}" : $"unanswered ({p.NullReason})";
     Console.WriteLine($"P({p.Variable} {p.Operator} {p.Threshold}) over hours {p.WindowStartHours}-{p.WindowEndHours} " +
         $"({p.From:MMM d HH:mm}Z to {p.To:MMM d HH:mm}Z, {p.Aggregation}): {chance} of {p.Members} members");
 }

@@ -67,7 +67,7 @@ const forecastUrl = (args) => {
     prob: terms.length ? probParam(terms, units) : undefined,
     totals: totals.length ? totalsParam(totals) : undefined,
   };
-  return { path: locationPath(args.state, args.name), query: canonicalQuery(values, defaultsOf('/api/v1/locations/{state}/{name}')) };
+  return { path: locationPath(args.state, args.slug), query: canonicalQuery(values, defaultsOf('/api/v1/locations/{state}/{slug}')) };
 };
 
 const cases = [];
@@ -92,7 +92,7 @@ for (const c of cases) {
       return;
     }
     const args = { ...c.call.args };
-    if (args.location) [args.state, args.name] = args.location.split('/');
+    if (args.location) [args.state, args.slug] = args.location.split('/');
     const url = forecastUrl(args);
     assert.equal(url.path, c.expect.path);
     if (c.expect.query_string !== undefined) assert.equal(url.query, c.expect.query_string);
@@ -111,7 +111,7 @@ test('prob/invalid-aggregation: any on precipitation is refused before a URL exi
 
 test('request/path-segments-encoded: both path segments are percent-encoded', () => {
   const v = JSON.parse(readFileSync(join(vectors, 'request/path-segments-encoded.json'), 'utf8'));
-  const [state, name] = v.call.args.location ? v.call.args.location.split('/') : [v.call.args.state, v.call.args.name];
+  const [state, name] = v.call.args.location ? v.call.args.location.split('/') : [v.call.args.state, v.call.args.slug];
   assert.equal(locationPath(state, name), v.expect_request.path);
 });
 

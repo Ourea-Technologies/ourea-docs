@@ -178,16 +178,6 @@
         "current_by_coordinates"
       ]
     },
-    "storm-reports": {
-      "title": "Storm report cards: forecast vs observed totals for completed events.",
-      "page": "/features/current-and-alerts/",
-      "pro": false,
-      "curl": "examples/curl/storm-reports.sh",
-      "capnp": "examples/capnp/cli/storm-reports.sh",
-      "sdk": [
-        "storm_reports"
-      ]
-    },
     "units": {
       "title": "The same forecast in imperial and in kelvin units.",
       "page": "/features/units/",
@@ -271,9 +261,9 @@
       "page": "/features/auth-and-tiers/",
       "pro": true,
       "curl": "examples/curl/maps-token.sh",
-      "capnp": null,
+      "capnp": "examples/capnp/cli/maps-token.sh",
       "sdk": [],
-      "$comment": "getMapsToken serves JSON only (no Cap'n Proto), and the SDKs leave it out of scope for 0.x (BEHAVIOR.md section 3), so this task has only the curl example."
+      "$comment": "The SDKs leave getMapsToken out of scope for 0.x (BEHAVIOR.md section 3), so this task has no SDK example."
     }
   }
 }

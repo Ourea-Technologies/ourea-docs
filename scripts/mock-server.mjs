@@ -38,7 +38,7 @@ const root = existsSync(join(here, 'spec/vectors')) ? here : process.cwd();
 const spec = YAML.parse(readFileSync(join(root, 'spec/openapi/v1/openapi.yaml'), 'utf8'));
 const vectorsDir = join(root, 'spec/vectors');
 const schemaPath = join(root, 'public/schema/v1/ourea.capnp');
-const goldenForecast = join(root, 'examples/capnp/fixtures/forecast_response.v9.bin');
+const goldenForecast = join(root, 'examples/capnp/fixtures/forecast_response.v12.bin');
 
 const PRO_KEY = 'mock-pro-key';
 const FREE_KEY = 'mock-free-key';
@@ -128,8 +128,6 @@ const fallbackBody = (opId, q) => {
       return 'nearby-point.json';
     case 'getAvailableRuns':
       return 'runs.json';
-    case 'getStormReports':
-      return 'storm-reports.json';
     case 'getAllLocations':
     case 'getLocations':
       return 'locations-page.json';
@@ -154,11 +152,19 @@ const capnpBody = (rootName) => {
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────
-const error = (status, code, message, extra = {}) => ({
-  status,
-  headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...extra },
-  body: Buffer.from(JSON.stringify({ error: code, message })),
-});
+// The v1 error envelope: request_id (also the X-Request-Id header) and the
+// errors page's anchor for the code.
+let requestSeq = 0;
+const error = (status, code, message, extra = {}) => {
+  const requestId = `mock-${(++requestSeq).toString().padStart(6, '0')}`;
+  return {
+    status,
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-request-id': requestId, ...extra },
+    body: Buffer.from(
+      JSON.stringify({ error: code, message, request_id: requestId, doc_url: `https://docs.oureawx.com/features/errors/#${code.toLowerCase()}` }),
+    ),
+  };
+};
 const defaultOf = (schema) => (schema.default === undefined ? undefined : String(schema.default));
 
 /** One response for `req` ({ url, headers }), exactly as the server below sends it. */
@@ -215,7 +221,7 @@ export const handle = (req) => {
   }
 
   // Resource checks the examples rely on.
-  if (pathParams.name === 'nowhere') return error(404, 'LOCATION_NOT_FOUND', `No location ${pathParams.state}/nowhere.`);
+  if (pathParams.slug === 'nowhere') return error(404, 'LOCATION_NOT_FOUND', `No location ${pathParams.state}/nowhere.`);
   if (q.has('lat')) {
     const lat = Number(q.get('lat'));
     const lon = Number(q.get('lon'));

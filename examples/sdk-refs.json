@@ -6,49 +6,49 @@
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-python",
       "local": "../ensemble-weather-python",
       "ext": ".py",
-      "ref": "03b5ed16a66d"
+      "ref": "f15a2533c666"
     },
     "typescript": {
       "name": "ensemble-weather-typescript",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-typescript",
       "local": "../ensemble-weather-typescript",
       "ext": ".ts",
-      "ref": "82a204697c6d"
+      "ref": "06ec6fabc948"
     },
     "go": {
       "name": "ensemble-weather-go",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-go",
       "local": "../ensemble-weather-go",
       "ext": ".go",
-      "ref": "fd63d0b4df41"
+      "ref": "2d5b74fe169f"
     },
     "dotnet": {
       "name": "ensemble-weather-dotnet",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-dotnet",
       "local": "../ensemble-weather-dotnet",
       "ext": ".cs",
-      "ref": "dd0e9b97a688"
+      "ref": "cad1bf806f85"
     },
     "java": {
       "name": "ensemble-weather-java",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-java",
       "local": "../ensemble-weather-java",
       "ext": ".java",
-      "ref": "c588d4987efe"
+      "ref": "a30702105300"
     },
     "kotlin": {
       "name": "ensemble-weather-kotlin",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-kotlin",
       "local": "../ensemble-weather-kotlin",
       "ext": ".kt",
-      "ref": "bc61bc640131"
+      "ref": "d8f7a530dfc5"
     },
     "swift": {
       "name": "ensemble-weather-swift",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-swift",
       "local": "../ensemble-weather-swift",
       "ext": ".swift",
-      "ref": "eb86e27a39ee"
+      "ref": "6ac488dc8aa9"
     },
     "dart": {
       "name": "ensemble-weather-dart",
@@ -56,14 +56,14 @@
       "local": "../ensemble-weather-dart",
       "ext": ".dart",
       "examples": "example",
-      "ref": "8f5a704966c4"
+      "ref": "75a2eed9dc45"
     },
     "r": {
       "name": "ensemble-weather-r",
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-r",
       "local": "../ensemble-weather-r",
       "ext": ".R",
-      "ref": "70a6d2a53ce8"
+      "ref": "2eecab05fa6a"
     },
     "rust": {
       "name": "ensemble-weather-rust",

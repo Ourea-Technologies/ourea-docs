@@ -3,22 +3,26 @@
 // Copyright (c) 2026 Ourea Technologies
 //
 // Publishes the server's Cap'n Proto schema at public/schema/v1/ourea.capnp
-// with its maintainer-only comments removed (ticket and decision references,
+// with its maintainer-only comments removed, and beside it go.capnp, which
+// ourea.capnp imports for its `$Go.name` annotations (go-capnp's std file,
+// vendored unchanged in the server repository and published byte for byte) (ticket and decision references,
 // notes about the server's own build, tests and deployment). Declarations are
 // never touched: only text after a `#` changes, and the script proves it by
 // compiling both files and comparing the schema nodes `capnp compile` emits
 // (ids, names, ordinals, types, defaults, annotations), ignoring source info
 // (where comments live) and byte positions.
 //
-//   node scripts/sync-schema.mjs --source <path to the server's schema/ourea.capnp>
+//   node scripts/sync-schema.mjs --source <server repo> [--ref <commit>]
 //   node scripts/sync-schema.mjs --check            (CI)
 //
 // --check needs only the published file and its record, public/schema/v1/
 // SOURCE.json: it re-scrubs nothing, but verifies that the published file
 // compiles, carries no maintainer-only text, and has the node digest the sync
-// recorded (so a hand edit to a declaration fails CI).
-// The source is the server repository's schema file; from a local clone of it,
-//   git -C <server repo> show <ref>:schema/ourea.capnp > /tmp/ourea.capnp
+// recorded (so a hand edit to a declaration fails CI), and that go.capnp is
+// the bytes the sync copied.
+// The source is a clone of the server repository, read at <ref> (default
+// HEAD) with git, like scripts/sync-error-codes.mjs: schema/ourea.capnp and
+// schema/go.capnp.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -28,6 +32,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'public/schema/v1/ourea.capnp');
+const goOut = join(root, 'public/schema/v1/go.capnp');
 const record = join(root, 'public/schema/v1/SOURCE.json');
 const args = process.argv.slice(2);
 const opt = (n) => (args.includes(n) ? args[args.indexOf(n) + 1] : undefined);
@@ -69,6 +74,14 @@ const HEADER = `# The Ourea weather API's Cap'n Proto schema (API v1).
 # Optional fields use the sibling-bool pattern (\`hasFoo\` + \`foo\`), because
 # Cap'n Proto has no native Option type. When \`hasFoo\` is false the inner
 # value is zero-initialized and must be ignored.
+#
+# This file imports go.capnp (https://docs.oureawx.com/schema/v1/go.capnp,
+# go-capnp's std/go.capnp, unchanged): download it beside this file. Every
+# \`hasFoo\` flag carries \`$Go.name("hasFooFlag")\`, so capnpc-go's
+# generated \`HasFoo()\` for the pointer field \`foo\` and the flag's accessor
+# (\`HasFooFlag()\`) do not collide. Annotations change generated Go names
+# only; the wire format and every other language's names are untouched. A Go
+# reader adds its own \`$Go.package(...)\` and \`$Go.import(...)\`.
 `;
 
 // ── Comment rewriting ────────────────────────────────────────────────────
@@ -84,6 +97,8 @@ const BLOCK_EDITS = [
   [/ \(REST `provenance` on each\s+timeseries point[\s\S]*?ship the reader with it\./,
     ' (REST `provenance`, asked with\n`?diagnostics=provenance`) is not carried in this format: a Cap\'n Proto reader\nmust treat provenance as not reported, never as "nothing happened".'],
   [/ \(docs\/[\w.-]+\.md\)/, ''],
+  // HourProvenance: the REST model's source file.
+  [/REST `HourProvenance` \(src\/api\/models\/response\.rs documents each\s+list\)/, 'REST `HourProvenance` (the API reference documents each\nlist)'],
   [/the rest of the REST `\/current` body \(#\d+, #\d+, KAN-\d+,\s*KAN-\d+\)\./, 'the rest of the REST `/current` body.'],
   [/ \(#\d+[a-z]\d*\)/, ''],
   [/— KAN-\d+ re-measures it once/, '— it is re-measured once'],
@@ -128,10 +143,16 @@ export function scrub(src) {
   const ns = lines.findIndex((l) => l.startsWith('$Cxx.namespace('));
   const firstRule = lines.findIndex((l, i) => i > ns && l.startsWith('# ── '));
   if (ns < 0 || firstRule < 0) throw new Error('schema layout changed: header markers not found; review sync-schema.mjs');
+  // The header may hold `using X = import "...";` declarations (the Go
+  // annotations' import); they are kept, after the public header. Any other
+  // declaration there is a layout change to review.
+  const usings = [];
   for (let i = ns + 1; i < firstRule; i++) {
-    if (lines[i].trim() !== '' && !lines[i].startsWith('#')) throw new Error(`schema layout changed: a declaration inside the header (line ${i + 1})`);
+    if (lines[i].trim() === '' || lines[i].startsWith('#')) continue;
+    if (/^using \w+ = import "[\w./-]+";$/.test(lines[i])) usings.push(lines[i]);
+    else throw new Error(`schema layout changed: a declaration inside the header (line ${i + 1})`);
   }
-  const body = [...lines.slice(0, ns + 1), '', ...HEADER.trimEnd().split('\n'), '', ...lines.slice(firstRule)];
+  const body = [...lines.slice(0, ns + 1), '', ...HEADER.trimEnd().split('\n'), ...(usings.length ? ['', ...usings] : []), '', ...lines.slice(firstRule)];
 
   // 2. Rewrite comments block by block. A block is a run of whole-line
   //    comments with the same indent; trailing comments are handled alone.
@@ -204,10 +225,12 @@ const schemaCapnp = () => {
 };
 
 /** A digest of the CodeGeneratorRequest nodes, with source info (comments) and file names removed. */
-export function nodeDigest(text) {
+export function nodeDigest(text, goCapnp = readFileSync(goOut)) {
   const dir = mkdtempSync(join(tmpdir(), 'ourea-schema-'));
   try {
     writeFileSync(join(dir, 'ourea.capnp'), text);
+    // ourea.capnp imports "go.capnp" from its own directory.
+    writeFileSync(join(dir, 'go.capnp'), goCapnp);
     const req = execFileSync('capnp', ['compile', '-o-', 'ourea.capnp'], { cwd: dir, maxBuffer: 1 << 28 });
     const decoded = execFileSync('capnp', ['decode', schemaCapnp(), 'CodeGeneratorRequest'], { input: req, maxBuffer: 1 << 28 }).toString();
     // Keep only `nodes = [...]`; drop sourceInfo (doc comments, positions),
@@ -246,6 +269,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const published = readFileSync(out, 'utf8');
     const rec = JSON.parse(readFileSync(record, 'utf8'));
     const hits = forbiddenIn(published);
+    const goBytes = existsSync(goOut) ? readFileSync(goOut) : null;
     const { digest, count } = nodeDigest(published);
     let bad = 0;
     if (hits.length) {
@@ -260,18 +284,27 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.error('public/schema/v1/ourea.capnp differs from what the sync wrote; re-run the sync');
       bad++;
     }
+    if (!goBytes || createHash('sha256').update(goBytes).digest('hex') !== rec.go_sha256) {
+      console.error('public/schema/v1/go.capnp is missing or differs from the server copy the sync wrote; re-run the sync');
+      bad++;
+    }
     if (bad) process.exit(1);
-    console.log(`schema ok: ${count} nodes, identical to the server's (${rec.server_commit}), no maintainer-only comments`);
+    console.log(`schema ok: ${count} nodes, identical to the server's (${rec.server_commit}), go.capnp beside it, no maintainer-only comments`);
   } else {
     const sourcePath = opt('--source');
     if (!sourcePath) {
-      console.error('usage: node scripts/sync-schema.mjs --source <server schema/ourea.capnp> [--commit <server commit>] | --check');
+      console.error('usage: node scripts/sync-schema.mjs --source <server repo> [--ref <commit>] | --check');
       process.exit(2);
     }
-    const original = readFileSync(resolve(sourcePath), 'utf8');
+    const repo = resolve(sourcePath);
+    const ref = opt('--ref') ?? 'HEAD';
+    const git = (...a) => execFileSync('git', ['-C', repo, ...a], { maxBuffer: 1 << 28 });
+    const commit = git('rev-parse', '--short=12', `${ref}^{commit}`).toString().trim();
+    const original = git('show', `${commit}:schema/ourea.capnp`).toString();
+    const goCapnp = git('show', `${commit}:schema/go.capnp`);
     const published = scrub(original);
-    const a = nodeDigest(original);
-    const b = nodeDigest(published);
+    const a = nodeDigest(original, goCapnp);
+    const b = nodeDigest(published, goCapnp);
     if (a.digest !== b.digest) {
       console.error('scrubbing changed the schema nodes; refusing to publish');
       process.exit(1);
@@ -283,14 +316,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     }
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, published);
+    writeFileSync(goOut, goCapnp);
     writeFileSync(
       record,
       `${JSON.stringify(
         {
           $comment: 'Written by scripts/sync-schema.mjs. The published schema is the Ourea server schema with maintainer-only comments removed; node_digest is the sha256 of its compiled schema nodes, identical for both files.',
-          server_commit: opt('--commit') ?? 'unrecorded',
+          server_commit: commit,
           source_sha256: createHash('sha256').update(original).digest('hex'),
           published_sha256: createHash('sha256').update(published).digest('hex'),
+          go_sha256: createHash('sha256').update(goCapnp).digest('hex'),
           node_digest: a.digest,
           nodes: a.count,
         },
@@ -298,6 +333,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         2,
       )}\n`,
     );
-    console.log(`published ${out.replace(`${root}/`, '')}: ${a.count} nodes identical to the source; comments scrubbed`);
+    console.log(`published ${out.replace(`${root}/`, '')} and go.capnp from ${commit}: ${a.count} nodes identical to the source; comments scrubbed`);
   }
 }

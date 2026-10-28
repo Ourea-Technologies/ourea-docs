@@ -17,7 +17,7 @@ export const CHANGELOG = [
     kind: 'Release',
     breaking: 'No: the v1 baseline',
     operations: [],
-    body: 'The v1 contract lock: the public spec in [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec) at `openapi/v1/openapi.yaml`. From here v1 changes only additively.',
+    body: 'The v1 contract lock: the public spec this site serves at `/openapi/v1/openapi.yaml` (also in [ensemble-weather-spec](https://github.com/Ourea-Technologies/ensemble-weather-spec) at `openapi/v1/openapi.yaml`), with the API reference built from it. From here v1 changes only additively.',
   },
   {
     date: '2026-10-19',

@@ -1,7 +1,7 @@
 ---
 title: "Current conditions and alerts"
-seoTitle: "Current conditions, alerts and storm reports"
-description: "Nowcast-blended current conditions, nearby sensor readings, active NWS alerts by location or coordinates, and storm report cards."
+seoTitle: "Current conditions and alerts · /current, /alerts"
+description: "Nowcast-blended current conditions, nearby sensor readings and active NWS alerts, by location or by coordinates."
 sidebar:
   order: 9
 ---
@@ -17,7 +17,7 @@ import Example from '../../../components/Example.astro';
 - `current`: "right now" as one flat object, read from the served hour nearest
   the request time: `temperature`, `feels_like`, `condition`,
   `condition_text`, `condition_icon`, `wind_speed`, `wind_gust`,
-  `wind_direction`, `relative_humidity`, `dewpoint`, `precip_probability`,
+  `wind_direction`, `relative_humidity`, `dewpoint`, `precipitation_probability`,
   and `source` (`nowcast` when a live observation carried weight, `model` when
   none did), plus the anchoring `station` when there was one. It is `null` when
   no cycle is servable.
@@ -42,7 +42,10 @@ elevation difference in metres / 100).
 `GET /api/v1/locations/{state}/{slug}/alerts` returns the active NWS watches,
 warnings and advisories for the location, matched by NWS zone and, for
 convective products, by warning polygon: `id`, `event`, `severity`,
-`urgency`, `headline`, `onset`, `expires`, `ends`. Alerts are ingested about
+`urgency`, `certainty`, `headline`, `onset`, `expires`, `ends`. `severity`
+(`extreme`, `severe`, ...), `urgency` (`immediate`, ...) and `certainty`
+(`observed`, `likely`, `possible`, `unlikely`, `unknown`) are snake_case
+codes. Alerts are ingested about
 every 2 minutes and served `Cache-Control: private, no-cache` with an `ETag`:
 safety data never sits in a shared cache, and a poll of unchanged alerts is a
 `304` with no body.
@@ -55,17 +58,7 @@ resolves it. Free and anonymous callers get `403 PRO_REQUIRED`.
 
 <Example task="current-and-alerts-coordinates" op="getCurrentByCoordinates" />
 
-## Storm reports
-
-`GET /api/v1/storm-reports` lists verified storm "report cards", one per
-completed event where both forecast and observed totals have landed: forecast
-and observed totals, the best-performing model and its lead time, a composite
-skill score and a headline. It works without credentials.
-
-<Example task="storm-reports" op="getStormReports" />
-
 ## Reference
 
 [`getCurrentConditions`](/api/), [`getLocationAlerts`](/api/),
-[`getCurrentByCoordinates`](/api/), [`getAlertsByCoordinates`](/api/) and
-[`getStormReports`](/api/).
+[`getCurrentByCoordinates`](/api/) and [`getAlertsByCoordinates`](/api/).

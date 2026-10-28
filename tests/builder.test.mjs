@@ -22,7 +22,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const spec = YAML.parse(readFileSync(join(root, 'spec/openapi/v1/openapi.yaml'), 'utf8'));
 const r = (o) => (o?.$ref ? o.$ref.replace(/^#\//, '').split('/').reduce((a, k) => a[k], spec) : o);
 const defaults = Object.fromEntries(
-  spec.paths['/api/v1/locations/{state}/{name}'].get.parameters.map(r).filter((p) => p.in === 'query' && r(p.schema ?? {}).default !== undefined).map((p) => [p.name, r(p.schema).default]),
+  spec.paths['/api/v1/locations/{state}/{slug}'].get.parameters.map(r).filter((p) => p.in === 'query' && r(p.schema ?? {}).default !== undefined).map((p) => [p.name, r(p.schema).default]),
 );
 
 const built = [

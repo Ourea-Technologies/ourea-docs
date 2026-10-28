@@ -1,7 +1,7 @@
 {
-  "description": "The golden ForecastResponse message (version 9) from the Ourea server's Cap'n Proto wire-compatibility tests: synthetic values, not a real forecast. It is the newest golden message the server writes byte for byte.",
-  "version": 9,
+  "description": "The golden ForecastResponse message (version 12) from the Ourea server's Cap'n Proto wire-compatibility tests: synthetic values, not a real forecast. It is the newest golden message the server writes byte for byte.",
+  "version": 12,
   "root": "ForecastResponse",
-  "server_commit": "25e591d0d8cd",
-  "sha256": "f2e114fb5938ef8bc46a6189568c76c51e3b4526fdafb53adf301d98de9624f1"
+  "server_commit": "3ba3f53988d4",
+  "sha256": "b7f6800b9c78c7e15cd5299bac2e9384743fec4d7f7999ca1e9a71304109fa80"
 }

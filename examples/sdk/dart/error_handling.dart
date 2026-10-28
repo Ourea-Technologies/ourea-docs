@@ -9,6 +9,7 @@ Future<void> main() async {
       await client.forecastAt(51.5, -0.1); // London: outside the CONUS domain
     } on OutsideCoverageException catch (e) {
       print('Outside coverage (${e.code}), HTTP ${e.status}: ${e.message}');
+      print('  request ${e.requestId}; see ${e.docUrl}');
     } on PermissionException catch (e) {
       print('Point forecasts need a Pro key (${e.code}).');
     } on EnsembleWeatherException catch (e) {
