@@ -13,7 +13,7 @@
       "repo": "https://github.com/Ourea-Technologies/ensemble-weather-typescript",
       "local": "../ensemble-weather-typescript",
       "ext": ".ts",
-      "ref": "06ec6fabc948"
+      "ref": "v0.1.0"
     },
     "go": {
       "name": "ensemble-weather-go",

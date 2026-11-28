@@ -11,6 +11,7 @@ import Example from '../../../components/Example.astro';
 import ExampleResponse from '../../../components/ExampleResponse.astro';
 import HttpExample from '../../../components/HttpExample.astro';
 import LanguageNotes from '../../../components/LanguageNotes.astro';
+import MainSiteLinks from '../../../components/MainSiteLinks.astro';
 import SdkExample from '../../../components/SdkExample.astro';
 
 Node.js 18 and later have `fetch` built in, so a forecast is one call with no dependencies. On the server you can also keep a Pro key safely in the environment. [Ourea](https://oureawx.com) serves ensemble forecasts for the
@@ -37,8 +38,8 @@ share the edge cache: see [Caching and ETags](/features/caching/).
 <LanguageNotes sdk="typescript" />
 
 <Aside type="note">
-The SDK's first release is 0.1.0. Until it is published to the registry, the
-standard-library example above is the way to call the API from Node.js.
+ensemble-weather 0.1.0 is on npm: `npm install ensemble-weather`. The
+standard-library example above needs no package at all.
 </Aside>
 
 ### Quickstart with the SDK
@@ -73,3 +74,5 @@ On a server, read the key from `OUREA_API_KEY`, keep a private ETag cache, and l
   [plumes](/features/plumes/) and [errors](/features/errors/) cover the
   features in depth.
 - The [API reference](/api/) documents every route.
+
+<MainSiteLinks />

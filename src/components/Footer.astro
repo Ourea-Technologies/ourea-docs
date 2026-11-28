@@ -5,7 +5,9 @@
 // Starlight's footer (with the page's last-updated date from git), plus
 // "Was this page helpful?" and a "found a problem?" link on every page.
 // No backend: Yes opens the page-feedback issue form and No the docs-problem
-// form, each with this page's URL filled in.
+// form, each with this page's URL filled in. Then the forecast pages on
+// oureawx.com (src/data/main-site.mjs).
+import { MAIN_SITE_PAGES, SKI_AREAS } from '../data/main-site.mjs';
 import Default from '@astrojs/starlight/components/Footer.astro';
 
 const page = new URL(Astro.url.pathname, Astro.site).href;
@@ -28,6 +30,12 @@ const issue = form('docs.yml', { title: `Docs: ${title}`, page });
   </p>
   <p>
     Found a problem with this page? <a href={issue}>Open an issue</a> · <a href="/community/">Contribute and get help</a> · <a href="/status/">API status</a>
+  </p>
+  <p>
+    Forecasts on oureawx.com: {MAIN_SITE_PAGES.map((l, i) => <>{i > 0 && ' · '}<a href={l.href}>{l.text}</a></>)}
+  </p>
+  <p>
+    Ski areas: {SKI_AREAS.map((l, i) => <>{i > 0 && ' · '}<a href={l.href}>{l.text}</a></>)}
   </p>
 </div>
 <Default />

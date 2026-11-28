@@ -51,7 +51,9 @@ const sdkTab = (task: Task, sdk: (typeof SDKS)[number]): TabCode => {
   }
   const examplesDir = (refs.sdks as Record<string, { examples?: string }>)[sdk.refKey]?.examples ?? 'examples';
   const inRepo = path.replace(/^examples\/sdk\/[^/]+\//, `${examplesDir}/`);
-  return { ...base, path, code: raw(path), sourceUrl: `${sdk.repo}/blob/${entry.commit ?? entry.ref}/${inRepo}` };
+  // A release tag links as the tag (v0.1.0); a commit pin links its full SHA.
+  const at = /^[0-9a-f]{7,40}$/.test(entry.ref ?? '') ? (entry.commit ?? entry.ref) : entry.ref;
+  return { ...base, path, code: raw(path), sourceUrl: `${sdk.repo}/blob/${at}/${inRepo}` };
 };
 
 export const tabsFor = (task: Task): TabCode[] => {

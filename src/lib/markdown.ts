@@ -7,6 +7,7 @@
 // the build rather than leaking into the output.
 import { CHANGELOG } from '../data/changelog.mjs';
 import { FAQ } from '../data/faq';
+import { mainSiteMarkdown } from '../data/main-site.mjs';
 import { CAPNP_DECODERS, HTTP_EXAMPLES, comingSdks, raw, sdkTabFor, tabsFor, type Task } from './examples';
 import { SDKS } from './languages.mjs';
 import { annotatedResponse } from './responses.mjs';
@@ -58,6 +59,7 @@ const replacers: [RegExp, (a: Record<string, string>) => string][] = [
     ].join('\n\n')],
   [/<StatusBoard\s*\/>/g, () => `Live status (JSON): ${SITE}/status/data.json`],
   [/<PageActions\s*\/>\n?/g, () => ''],
+  [/<MainSiteLinks\s*\/>/g, () => mainSiteMarkdown()],
   [/<LinkCard ([^>]*?)\/>/g, (a) => `- [${a.title}](${a.href})${a.description ? `: ${a.description}` : ''}`],
 ];
 

@@ -1,0 +1,14 @@
+---
+// SPDX-License-Identifier: BSD-2-Clause
+// Copyright (c) 2026 Ourea Technologies
+//
+// The forecast pages on oureawx.com, in a page's own text (src/data/main-site.mjs;
+// the .md export renders mainSiteMarkdown() from the same list).
+import { MAIN_SITE_PAGES, SKI_AREAS } from '../data/main-site.mjs';
+---
+
+<p>
+  Ourea's forecast pages are on oureawx.com:{' '}
+  {MAIN_SITE_PAGES.map((l, i) => <>{i > 0 && ' · '}<a href={l.href}>{l.text}</a></>)}, and snow forecasts for ski areas such as{' '}
+  {SKI_AREAS.map((l, i) => <>{i > 0 && (i === SKI_AREAS.length - 1 ? ' and ' : ', ')}<a href={l.href}>{l.text}</a></>)}.
+</p>

@@ -17,8 +17,8 @@
     }
   },
   "typescript": {
-    "ref": "06ec6fabc948",
-    "commit": "06ec6fabc94846f47c3b83ab3c61f9ee60789117",
+    "ref": "v0.1.0",
+    "commit": "6a32bda92c08497c32ce43bbb1798ee7f536a1cc",
     "runtime": "Node.js >=18",
     "tasks": {
       "quickstart": "examples/sdk/typescript/quickstart.ts",
